@@ -64,3 +64,50 @@ $ forge --help
 $ anvil --help
 $ cast --help
 ```
+
+### Using the Dockerfile
+
+This section provides instructions on how to build, run, use, and stop the Docker container configured to start Anvil, compile your contracts, and deploy them.
+
+
+#### Building the Docker Image
+
+1. Navigate to your project directory where the Dockerfile is located.
+
+2. Build the Docker image:
+   ```sh
+   docker build -t forge-anvil .
+   ```
+
+#### Running the Docker Container
+
+To start the Docker container and deploy your contracts:
+
+```sh
+docker run -p 8545:8545 forge-anvil
+```
+
+This command will:
+
+- Start Anvil on port 8545.
+- Compile the contracts.
+- Deploy the contracts to the Anvil testnet.
+
+#### Stopping the Docker Container
+
+To stop the Docker container:
+
+1. List the running Docker containers to get the container ID or name:
+   ```sh
+   docker ps
+   ```
+
+2. Stop the container using the container ID or name:
+   ```sh
+   docker stop <container_id_or_name>
+   ```
+
+Example:
+```sh
+docker stop forge-anvil-container
+```

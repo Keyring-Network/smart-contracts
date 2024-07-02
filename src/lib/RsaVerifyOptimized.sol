@@ -61,16 +61,18 @@ abstract contract RsaVerifyOptimized {
      * @return True if the verification is successful, false otherwise.
      */
     function verifyAuthMessage(
-        bytes memory signature,
-        RsaKey memory key,
         address tradingAddress,
         uint24 policyId,
         uint32 epoch,
-        bytes memory backdoor
+        uint32 epochExp,
+        uint168 cost,
+        bytes calldata key,
+        bytes calldata signature,
+        bytes calldata backdoor
     ) internal view returns (bool) {
-        bytes memory payload = abi.encodePacked(bytes32((uint256(policyId) << 32) | (uint256(epoch))));
-        bytes memory message = abi.encodePacked(tradingAddress, payload, backdoor);
-        return pkcs1Sha256Raw(message, signature, key.exponent, key.modulus);
+        bytes memory message = abi.encodePacked(tradingAddress, policyId, epoch, epochExp, cost, backdoor);
+        bytes memory modulus = hex"03";
+        return pkcs1Sha256Raw(message, signature, key, modulus);
     }
 
     /**
