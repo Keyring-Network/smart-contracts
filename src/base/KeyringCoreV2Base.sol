@@ -278,11 +278,11 @@ abstract contract KeyringCoreV2Base {
             revert ErrCallerNotAdmin(msg.sender);
         }
         if (validTo <= validFrom) {
-            revert ErrInvalidKeyRegistration("Invalid validity period");
+            revert ErrInvalidKeyRegistration("IVP");
         }
         bytes32 keyHash = getKeyHash(key);
         if (_keys[keyHash].isValid) {
-            revert ErrInvalidKeyRegistration("Key already registered");
+            revert ErrInvalidKeyRegistration("KAR");
         }
         _keys[keyHash] = KeyEntry(bytes15(0), true, uint64(validFrom), uint64(validTo));
         emit KeyRegistered(bytes31(keyHash), validFrom, validTo, key);
@@ -335,13 +335,21 @@ abstract contract KeyringCoreV2Base {
         emit EntityUnblacklisted(policyId, entity_);
     }
 
-
+    /**
+    * @notice Collects fees and transfers them to the specified address.
+    * @param to The address to transfer the collected fees to.
+    * @dev Only callable by the admin.
+    * @custom:requires msg.sender must be the admin.
+    * @custom:emits This function does not emit any events.
+    * @custom:throws ErrCallerNotAdmin if the caller is not the admin.
+    */
     function collectFees(address to) public {
         if (msg.sender != _admin) {
             revert ErrCallerNotAdmin(msg.sender);
         }
         payable(to).transfer(address(this).balance);
     }
+
 
 
     // INTERNAL FUNCTIONS
