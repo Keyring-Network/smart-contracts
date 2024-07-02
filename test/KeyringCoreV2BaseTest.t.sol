@@ -2,14 +2,11 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import "../src/KeyringCoreV2.sol";
+import "../src/unsafe/KeyringCoreV2Unsafe.sol";
 
-contract KeyringCoreV2BaseTestRig is KeyringCoreV2Base {
-    constructor() KeyringCoreV2Base() {}
-}
 
-contract KeyringCoreV2BaseTest is Test {
-    KeyringCoreV2BaseTestRig internal keyring;
+contract KeyringCoreV2UnsafeTest is Test {
+    KeyringCoreV2Unsafe internal keyring;
     address internal admin;
     address internal nonAdmin;
     bytes32 internal testKeyHash;
@@ -18,7 +15,7 @@ contract KeyringCoreV2BaseTest is Test {
     function setUp() public {
         admin = address(this);
         nonAdmin = address(0x123);
-        keyring = new KeyringCoreV2BaseTestRig();
+        keyring = new KeyringCoreV2Unsafe();
         testKey = hex"abcd";
         testKeyHash = keyring.getKeyHash(testKey);
         vm.warp(1704067200); // 01-01-2024 00:00:00
