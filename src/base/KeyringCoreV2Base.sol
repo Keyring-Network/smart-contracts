@@ -7,9 +7,6 @@ pragma solidity ^0.8.20;
  */
 abstract contract KeyringCoreV2Base {
 
-    uint256 constant public BASETIME = 1704067200; // 01-01-2024 00:00:00 GMT
-    uint256 constant public EPOCHLENGTH = 1 hours;
-
     /**
      * @notice Represents data associated with an entity.
      * @dev Contains whitelisting status and expiration information.
@@ -18,7 +15,6 @@ abstract contract KeyringCoreV2Base {
      * @param exp The expiration for the entity's credential.
      */
     struct EntityData {
-        bytes23 PADDING; // padding
         bool blacklisted;
         uint64 exp;
     }
@@ -32,7 +28,6 @@ abstract contract KeyringCoreV2Base {
      * @param validTo The end time of the key's validity.
      */
     struct KeyEntry {
-        bytes15 PADDING; // padding
         bool isValid;
         uint64 validFrom;
         uint64 validTo;
@@ -61,11 +56,11 @@ abstract contract KeyringCoreV2Base {
     /// @param validFrom The start time of the key's validity.
     /// @param validTo The end time of the key's validity.
     /// @param publicKey The public key.
-    event KeyRegistered(bytes31 indexed keyHash, uint256 indexed validFrom, uint256 indexed validTo, bytes publicKey);
+    event KeyRegistered(bytes32 indexed keyHash, uint256 indexed validFrom, uint256 indexed validTo, bytes publicKey);
 
     /// @notice Event emitted when a key is revoked.
     /// @param keyHash The hash of the key.
-    event KeyRevoked(bytes31 indexed keyHash);
+    event KeyRevoked(bytes32 indexed keyHash);
 
     /// @notice Event emitted when a credential is created.
     /// @param policyId The ID of the policy.
@@ -115,28 +110,6 @@ abstract contract KeyringCoreV2Base {
         return _admin;
     }
 
-    function getTimeForEndOfEpoch(uint32 epoch) public view returns (uint256) {
-        return epochToExp(epoch);
-    }
-
-    function getTimeForStartOfEpoch(uint32 epoch) public view returns (uint256) {
-        if (epoch == 0) {
-            return BASETIME;
-        }
-        return epochToExp(epoch-1);
-    }
-
-    function getCurrentEpoch() public view returns (uint32) {
-        return getEpochForTime(block.timestamp);
-    }
-
-    function getEpochForTime(uint256 time) public view returns (uint32) {
-        if (time < BASETIME) {
-            return 0;
-        }
-        return uint32((time - BASETIME) / EPOCHLENGTH);
-    }
-
     /**
      * @notice Returns the hash of a key.
      * @param key The key.
@@ -160,7 +133,7 @@ abstract contract KeyringCoreV2Base {
      * @param keyHash The hash of the key.
      * @return The start time of the key's validity.
      */
-    function keyValidFrom(bytes32 keyHash) public view returns (uint64) {
+    function keyValidFrom(bytes32 keyHash) public view returns (uint256) {
         return _keys[keyHash].validFrom;
     }
 
@@ -169,7 +142,7 @@ abstract contract KeyringCoreV2Base {
      * @param keyHash The hash of the key.
      * @return The end time of the key's validity.
      */
-    function keyValidTo(bytes32 keyHash) public view returns (uint64) {
+    function keyValidTo(bytes32 keyHash) public view returns (uint256) {
         return _keys[keyHash].validTo;
     }
 
@@ -198,7 +171,7 @@ abstract contract KeyringCoreV2Base {
      * @param entity_ The address of the entity.
      * @return The expiration of the entity credential.
      */
-    function entityExp(uint256 policyId, address entity_) public view returns (uint64) {
+    function entityExp(uint256 policyId, address entity_) public view returns (uint256) {
         return _entityData[policyId][entity_].exp;
     }
 
@@ -241,10 +214,10 @@ abstract contract KeyringCoreV2Base {
      */
     function createCredential(
         address tradingAddress,
-        uint24 policyId,
-        uint32 epoch,
-        uint32 epochExp,
-        uint168 cost,
+        uint256 policyId,
+        uint256 epoch,
+        uint256 epochExp,
+        uint256 cost,
         bytes calldata key,
         bytes calldata signature,
         bytes calldata backdoor
@@ -284,8 +257,8 @@ abstract contract KeyringCoreV2Base {
         if (_keys[keyHash].isValid) {
             revert ErrInvalidKeyRegistration("KAR");
         }
-        _keys[keyHash] = KeyEntry(bytes15(0), true, uint64(validFrom), uint64(validTo));
-        emit KeyRegistered(bytes31(keyHash), validFrom, validTo, key);
+        _keys[keyHash] = KeyEntry(true, uint64(validFrom), uint64(validTo));
+        emit KeyRegistered(keyHash, validFrom, validTo, key);
     }
 
     /**
@@ -302,7 +275,7 @@ abstract contract KeyringCoreV2Base {
         }
 
         _keys[keyHash].isValid = false;
-        emit KeyRevoked(bytes31(keyHash));
+        emit KeyRevoked(keyHash);
     }
 
     /**
@@ -315,7 +288,7 @@ abstract contract KeyringCoreV2Base {
         if (msg.sender != _admin) {
             revert ErrCallerNotAdmin(msg.sender);
         }
-        EntityData memory ed = EntityData(bytes23(0), true, 0);
+        EntityData memory ed = EntityData(true, 0);
         _entityData[policyId][entity_] = ed;
         emit EntityBlacklisted(policyId, entity_);
     }
@@ -330,7 +303,7 @@ abstract contract KeyringCoreV2Base {
         if (msg.sender != _admin) {
             revert ErrCallerNotAdmin(msg.sender);
         }
-        EntityData memory ed = EntityData(bytes23(0), false, 0);
+        EntityData memory ed = EntityData(false, 0);
         _entityData[policyId][entity_] = ed;
         emit EntityUnblacklisted(policyId, entity_);
     }
@@ -355,30 +328,21 @@ abstract contract KeyringCoreV2Base {
     // INTERNAL FUNCTIONS
 
     /**
-     * @notice Converts epoch time to expiration time.
-     * @param epoch The epoch time.
-     * @return The expiration time.
-     */
-    function epochToExp(uint32 epoch) internal pure returns (uint64) {
-        return uint64(BASETIME + EPOCHLENGTH + (epoch * EPOCHLENGTH));
-    }
-
-    /**
      * @notice Internal function that creates a credential for an entity.
      * @param tradingAddress The trading address.
      * @param policyId The policy ID.
-     * @param epoch The epoch time.
-     * @param epochExp The epoch expiration time.
+     * @param creatBefore The time after which the credential is no longer valid for creation.
+     * @param validUntil The expiration time of the credential.
      * @param cost The cost of the credential.
      * @param key The RSA key.
      * @param backdoor The backdoor data.
      */
     function _createCredential(
         address tradingAddress,
-        uint24 policyId,
-        uint32 epoch,
-        uint32 epochExp,
-        uint168 cost,
+        uint256 policyId,
+        uint256 creatBefore,
+        uint256 validUntil,
+        uint256 cost,
         bytes calldata key,
         bytes calldata backdoor) internal { 
         // Verify the cost of the credential creation matches the value sent.
@@ -386,20 +350,18 @@ abstract contract KeyringCoreV2Base {
             revert ErrInvalidCredential(policyId, tradingAddress, "VAL");
         }
         // Verify the key is valid.
+        uint256 currentTime = block.timestamp;
         {
             bytes32 keyHash = getKeyHash(key);
             KeyEntry memory entry = _keys[keyHash];
-            uint256 currentTime = block.timestamp;
             bool isValid = (entry.isValid && currentTime >= entry.validFrom && currentTime <= entry.validTo);
             // Verify the key is valid.
             if (!isValid) {
                 revert ErrInvalidCredential(policyId, tradingAddress, "BDK");
             }
         }
-        // Verify the credential was created within this epoch or the last epoch.
         {
-            uint256 thisEpochExp = epochToExp(epoch + 1);
-            if (block.timestamp > thisEpochExp) {
+            if (block.timestamp > creatBefore) {
                 revert ErrInvalidCredential(policyId, tradingAddress, "EPO");
             }
         }
@@ -410,16 +372,15 @@ abstract contract KeyringCoreV2Base {
             revert ErrInvalidCredential(policyId, tradingAddress, "BLK");
         }
         // Calculate the expiration for the credential.
-        uint256 exp = epochToExp(epochExp);
-        if (exp < block.timestamp) {
+        if (validUntil < currentTime) {
             revert ErrInvalidCredential(policyId, tradingAddress, "EXP");
         }
         // Set the expiration for the entity.
-        ed.exp = uint64(exp);
-        // Update the entity data.
+        ed.exp = uint64(validUntil);
         _entityData[policyId][tradingAddress] = ed;
+        // Update the entity data.
         // Emit the credential created event.
-        emit CredentialCreated(policyId, tradingAddress, exp, backdoor);
+        emit CredentialCreated(policyId, tradingAddress, validUntil, backdoor);
     }
 
 }

@@ -50,29 +50,19 @@ abstract contract RsaVerifyOptimized {
         bytes modulus;
     }
 
-    /**
-     * @notice Verifies an authorization message.
-     * @param signature The signature.
-     * @param key The RSA key.
-     * @param tradingAddress The trading address.
-     * @param policyId The policy ID.
-     * @param epoch The epoch time.
-     * @param backdoor The backdoor data.
-     * @return True if the verification is successful, false otherwise.
-     */
     function verifyAuthMessage(
         address tradingAddress,
-        uint24 policyId,
-        uint32 epoch,
-        uint32 epochExp,
-        uint168 cost,
+        uint256 policyId,
+        uint256 creatBefore,
+        uint256 validUntil,
+        uint256 cost,
         bytes calldata key,
         bytes calldata signature,
         bytes calldata backdoor
     ) internal view returns (bool) {
-        bytes memory message = abi.encodePacked(tradingAddress, policyId, epoch, epochExp, cost, backdoor);
-        bytes memory modulus = hex"03";
-        return pkcs1Sha256Raw(message, signature, key, modulus);
+        bytes memory message = abi.encodePacked(tradingAddress, uint24(policyId), uint32(creatBefore), uint32(validUntil), uint168(cost), backdoor);
+        bytes memory e = hex"03";
+        return pkcs1Sha256Raw(message, signature, e, key);
     }
 
     /**
