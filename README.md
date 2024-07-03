@@ -16,11 +16,15 @@ Build the contracts and run in anvil testnet
 bash bin/develop.sh
 ```
 
-This command will:
-
-- Start Anvil on port 8545.
+This command will build a docker container to:
+- Create env with forge.
 - Compile the contracts.
+
+Then execute the following on the image:
+- Runs all tests.
+- Start Anvil on port 8545.
 - Deploy the contracts to the Anvil testnet.
+- Expose 8545 to localhost.
 
 Stop testnet service
 

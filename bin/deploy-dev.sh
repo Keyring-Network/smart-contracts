@@ -54,6 +54,8 @@ export ANVIL_DEPLOY_PRV_KEY
 export ANVIL_DEPLOY_PUB_KEY
 export RPC_URL="http://localhost:8545"
 
+forge test
+
 # Start Anvil in the background
 anvil --host 0.0.0.0 --port 8545 --init $ANVIL_GENESIS_FILE --chain-id 1337 &
 
