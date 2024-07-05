@@ -74,6 +74,3 @@ done
 # Assumes ``$ forge build`` has already been run
 # Deploy the contract using Forge
 forge script script/unsafe.s.sol --rpc-url $RPC_URL --private-key $ANVIL_DEPLOY_PRV_KEY --broadcast
-
-# Keep the container running
-tail -f /dev/null

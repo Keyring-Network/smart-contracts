@@ -16,5 +16,6 @@ docker run \
     --name core-v2 \
     -p 8545:8545 \
     core-v2:latest \
-    bash ./bin/deploy-dev.sh
+    /bin/bash -c \
+    "./bin/deploy-dev.sh && tail -f /dev/null"
 popd
