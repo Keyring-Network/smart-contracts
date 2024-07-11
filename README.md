@@ -1,6 +1,6 @@
 # Keyring Contracts: Version 2.0
 
-[![CI](https://github.com/Keyring-Network/core-v2/actions/workflows/ci.yaml/badge.svg?event=push)](https://github.com/Keyring-Network/core-v2/actions/workflows/ci.yaml)
+[![CI](https://github.com/Keyring-Network/core-v2/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/Keyring-Network/core-v2/actions/workflows/ci.yml)
 
 
 This repo is built using Foundry.
