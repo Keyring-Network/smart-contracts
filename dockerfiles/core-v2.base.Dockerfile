@@ -1,3 +1,7 @@
+# This Dockerfile sets up a lightweight Ubuntu 20.04 environment with necessary tools for Solidity development.
+# It installs dependencies, sets the timezone, and installs Foundry (Forge and Cast).
+# The project directory is prepared and dependencies are initialized using Forge.
+
 # Use a lightweight base image
 FROM ubuntu:20.04
 
@@ -24,25 +28,10 @@ ENV PATH="/root/.foundry/bin:${PATH}"
 # Set up the project directory
 WORKDIR /usr/src/app
 
-# Copy only the necessary files for the initial setup
-COPY foundry.toml .
-COPY genesis.json .
-COPY lib ./lib
-COPY src ./src
-
 # Copy the .git directory to ensure forge install works correctly
 COPY .git .git
+COPY foundry.toml .
+COPY lib ./lib
 
 # Initialize the Forge project
-RUN forge install && forge build
-
-# Copy the remaining project files
-COPY bin ./bin
-COPY dockerfiles ./dockerfiles
-COPY script ./script
-COPY test ./test
-COPY utils ./utils
-COPY README.md .
-
-# Expose the default JSON-RPC port
-EXPOSE 8545
+RUN forge install

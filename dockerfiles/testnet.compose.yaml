@@ -1,0 +1,46 @@
+# This Docker Compose file sets up a local testnet environment for deploying and testing smart contracts using core-v2.
+# It defines two services: a local RPC node and a service to deploy contracts.
+version: '3.8'
+
+services:
+  # This is the local RPC node that we will use to deploy the contracts.
+  node:
+    image: core-v2:latest
+    ports:
+      - "8545:8545"
+    networks:
+      - local-rpc
+    # NB: Make sure to use `'` instead of `"` and escape the inner `'` with `\'`.
+    #     We also need the `sh -c "... && tail -f /dev/null"` to keep the container running.
+    #     It doesn't work without the `sh -c`
+    command: |
+      sh -c ' \
+        bash ./bin/testnet-config.sh \
+          --host 0.0.0.0 \
+          --port 8545 \
+          --chain 1337 \
+          --genesis ./genesis.json \
+          --fund-account 0x7C010FD1B3e279ac063d862199484254f27C2C44 \
+        && tail -f /dev/null \
+      '
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://node:8545"]
+      interval: 0.1s
+      timeout: 0.1s
+      retries: 20
+
+  # This is the service that will deploy the contracts.
+  deploy-contracts:
+    image: core-v2:latest
+    depends_on:
+      - node
+    networks:
+      - local-rpc
+    command: >
+      bash ./bin/deploy.sh
+        --rpc http://node:8545
+        --chain 1337
+        --private-key 0x024cf65eb3bc550a1a6675aa21d146d7476fc5b62715d24fb2e0027647a213af
+
+networks:
+  local-rpc:
