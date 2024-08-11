@@ -50,5 +50,5 @@ This Docker Compose file sets up a local testnet environment for deploying and t
 
 **Usage:**
 ```bash
-docker-compose -f dockerfiles/testnet.compose.yaml up
+docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment up
 ```

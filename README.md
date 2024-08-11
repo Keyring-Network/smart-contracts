@@ -137,7 +137,7 @@ The repository is organized into the following directories and files:
 - **Purpose**: Sets up a local testnet environment using Docker Compose.
 - **Usage**:
   ```sh
-  docker-compose -f dockerfiles/testnet.compose.yaml up
+  docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment up
   ```
 
 ---
