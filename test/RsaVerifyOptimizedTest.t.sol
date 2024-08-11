@@ -19,7 +19,7 @@ contract RsaVerifyOptimizedTestRig is RsaVerifyOptimized {
     }
 }
 
-contract KeyringCoreV2UnsafeTest is Test {
+contract KeyringCoreV2Test is Test {
     RsaVerifyOptimizedTestRig internal keyring;
 
     function setUp() public {

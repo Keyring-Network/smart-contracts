@@ -71,4 +71,4 @@ echo "Deployer private key: $PRV_KEY"
 
 # Assumes ``$ forge build`` has already been run
 # Deploy the contract using Forge
-forge script "$ROOT/script/unsafe.s.sol" --rpc-url $RPC_URL --private-key $PRV_KEY --broadcast
+forge script "$ROOT/script/deploy.s.sol" --rpc-url $RPC_URL --private-key $PRV_KEY --broadcast

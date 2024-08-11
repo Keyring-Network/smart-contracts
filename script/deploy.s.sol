@@ -2,14 +2,14 @@
 pragma solidity ^0.8.0;
 
 import "forge-std/Script.sol";
-import "../src/unsafe/KeyringCoreV2Unsafe.sol";
+import "../src/KeyringCoreV2.sol";
 
 contract DeployScript is Script {
     function run() external {
         vm.startBroadcast();
 
         // Deploy the contract
-        KeyringCoreV2Unsafe c = new KeyringCoreV2Unsafe();
+        KeyringCoreV2 c = new KeyringCoreV2();
 
         console.log("Contract deployed at:", address(c));
 
