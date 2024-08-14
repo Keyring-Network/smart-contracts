@@ -105,4 +105,10 @@ while ! (echo > /dev/tcp/localhost/8545) >/dev/null 2>&1; do
     done
 done
 
+# For some reason the script doesn't respond to --chain-id flag
 echo -e "\r... Ready!                      "
+curl -X POST \
+    --silent \
+    -H "Content-Type: application/json" \
+    --data "{\"jsonrpc\":\"2.0\",\"method\":\"anvil_setChainId\",\"params\":[${ANVIL_CHAIN}],\"id\":1}" \
+    http://$ANVIL_HOST:$ANVIL_PORT > /dev/null
