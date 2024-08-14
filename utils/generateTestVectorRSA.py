@@ -11,8 +11,8 @@ def pack_message(trading_address, policy_id, creat_before, valid_until, cost, ba
     
     # Encode the values according to the specified types
     message = encode_packed(
-        ['address', 'uint24', 'uint32', 'uint32', 'uint168', 'bytes'],
-        [trading_address_bytes, policy_id, creat_before, valid_until, cost, backdoor]
+        ['address', 'uint8', 'uint24', 'uint32', 'uint32', 'uint160', 'bytes'],
+        [trading_address_bytes, 0, policy_id, creat_before, valid_until, cost, backdoor]
     )
     print(hexlify(message))
     return message

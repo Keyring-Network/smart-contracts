@@ -60,7 +60,7 @@ abstract contract RsaVerifyOptimized {
         bytes calldata signature,
         bytes calldata backdoor
     ) internal view returns (bool) {
-        bytes memory message = abi.encodePacked(tradingAddress, uint24(policyId), uint32(creatBefore), uint32(validUntil), uint168(cost), backdoor);
+        bytes memory message = abi.encodePacked(tradingAddress, uint8(0), uint24(policyId), uint32(creatBefore), uint32(validUntil), uint160(cost), backdoor);
         bytes memory e = hex"03";
         return pkcs1Sha256Raw(message, signature, e, key);
     }

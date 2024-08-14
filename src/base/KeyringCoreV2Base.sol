@@ -386,6 +386,9 @@ abstract contract KeyringCoreV2Base {
         if ( validUntil > type(uint32).max ) {
             revert ErrInvalidCredential(policyId, tradingAddress, "BVU");
         }
+        if ( cost > type(uint128).max ) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "CST");
+        }
         // Verify the cost of the credential creation matches the value sent.
         if (msg.value != cost) {
             revert ErrInvalidCredential(policyId, tradingAddress, "VAL");

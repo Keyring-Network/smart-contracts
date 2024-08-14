@@ -28,7 +28,7 @@ contract KeyringCoreV2 is KeyringCoreV2Base, RsaVerifyOptimized {
         bytes calldata signature,
         bytes calldata backdoor
     ) public payable override {
-        if (!verifyAuthMessage(tradingAddress, uint24(policyId), uint32(createBefore), uint32(validUntil), uint168(cost), key, signature, backdoor)) {
+        if (!verifyAuthMessage(tradingAddress, policyId, createBefore, validUntil, cost, key, signature, backdoor)) {
             revert ErrInvalidCredential(policyId, tradingAddress, "SIG");
         }
         super._createCredential(tradingAddress, policyId, createBefore, validUntil, cost, key, backdoor);
