@@ -10,7 +10,6 @@ abstract contract KeyringCoreV2Base {
     /**
      * @notice Represents data associated with an entity.
      * @dev Contains whitelisting status and expiration information.
-     * @param PADDING Padding bytes.
      * @param blacklisted Indicates if the entity is blacklisted.
      * @param exp The expiration for the entity's credential.
      */
@@ -22,7 +21,6 @@ abstract contract KeyringCoreV2Base {
     /**
      * @notice Represents a key entry.
      * @dev Contains validity status and the validity period of the key.
-     * @param PADDING Padding bytes.
      * @param isValid Indicates if the key is valid.
      * @param validFrom The start time of the key's validity.
      * @param validTo The end time of the key's validity.
@@ -50,6 +48,9 @@ abstract contract KeyringCoreV2Base {
     /// @notice Error for key not found.
     /// @param keyHash The hash of the key that was not found.
     error ErrKeyNotFound(bytes32 keyHash);
+
+    /// @notice Error for failed send of value.
+    error ErrFailedSendOfValue();
 
     /// @notice Event emitted when a key is registered.
     /// @param keyHash The hash of the key.
@@ -84,6 +85,12 @@ abstract contract KeyringCoreV2Base {
     /// @param entity The address of the entity.
     event EntityUnblacklisted(uint256 indexed policyId, address indexed entity);
 
+    /// @notice Event emitted when the admin is set.
+    /// @param oldAdmin The address of the old admin.
+    /// @param newAdmin The address of the new admin.
+    event AdminSet(address indexed oldAdmin, address indexed newAdmin);
+
+
     /// @dev Address of the admin.
     address private _admin;
 
@@ -98,6 +105,7 @@ abstract contract KeyringCoreV2Base {
      */
     constructor() {
         _admin = msg.sender;
+        emit AdminSet(address(0), msg.sender);
     }
 
     // VIEW FUNCTIONS
@@ -124,7 +132,7 @@ abstract contract KeyringCoreV2Base {
      * @param keyHash The hash of the key.
      * @return True if the key exists, false otherwise.
      */
-    function keyExists(bytes32 keyHash) public view returns (bool) {
+    function keyExists(bytes32 keyHash) external view returns (bool) {
         return _keys[keyHash].isValid;
     }
 
@@ -199,14 +207,28 @@ abstract contract KeyringCoreV2Base {
         return false;
     }
 
+    function checkCredential(uint256 policyId, address entityA_, address entityB_) public view returns (bool) {
+        return checkCredential(policyId, entityA_) && checkCredential(policyId, entityB_);
+    }
+
+    /**
+     * @notice Checks if an entity has a valid credential and supports legacy interface.
+     * @param policyId The ID of the policy.
+     * @param entity_ The address of the entity to check.
+     * @return True if the entity has a valid credential, false otherwise.
+     */
+    function checkCredential(address entity_, uint32 policyId) public view returns (bool) {
+        return checkCredential(policyId, entity_);
+    }
+
     // CREDENTIAL CREATION
 
     /**
      * @notice Creates a credential for an entity.
      * @param tradingAddress The trading address.
      * @param policyId The policy ID.
-     * @param epoch The epoch time.
-     * @param epochExp The epoch expiration time.
+     * @param createBefore The time after which the credential is no longer valid for creation.
+     * @param validUntil The expiration time of the credential.
      * @param cost The cost of the credential.
      * @param key The RSA key.
      * @param signature The signature.
@@ -215,14 +237,14 @@ abstract contract KeyringCoreV2Base {
     function createCredential(
         address tradingAddress,
         uint256 policyId,
-        uint256 epoch,
-        uint256 epochExp,
+        uint256 createBefore,
+        uint256 validUntil,
         uint256 cost,
         bytes calldata key,
         bytes calldata signature,
         bytes calldata backdoor
-    ) public virtual payable {
-        _createCredential(tradingAddress, policyId, epoch, epochExp, cost, key, backdoor);
+    ) external virtual payable {
+        _createCredential(tradingAddress, policyId, createBefore, validUntil, cost, key, backdoor);
     }
 
     // ADMIN CAPABILITIES
@@ -237,6 +259,7 @@ abstract contract KeyringCoreV2Base {
             revert ErrCallerNotAdmin(msg.sender);
         }
         _admin = newAdmin;
+        emit AdminSet(msg.sender, newAdmin);
     }
 
     /**
@@ -252,6 +275,9 @@ abstract contract KeyringCoreV2Base {
         }
         if (validTo <= validFrom) {
             revert ErrInvalidKeyRegistration("IVP");
+        }
+        if (validTo < block.timestamp) {
+            revert ErrInvalidKeyRegistration("EXP");
         }
         bytes32 keyHash = getKeyHash(key);
         if (_keys[keyHash].isValid) {
@@ -284,9 +310,12 @@ abstract contract KeyringCoreV2Base {
      * @param entity_ The address of the entity to blacklist.
      * @dev Only callable by the admin.
      */
-    function blacklistEntity(uint256 policyId, address entity_) public {
+    function blacklistEntity(uint256 policyId, address entity_) external {
         if (msg.sender != _admin) {
             revert ErrCallerNotAdmin(msg.sender);
+        }
+        if(_entityData[policyId][entity_].blacklisted == true) {
+            return;
         }
         EntityData memory ed = EntityData(true, 0);
         _entityData[policyId][entity_] = ed;
@@ -299,9 +328,12 @@ abstract contract KeyringCoreV2Base {
      * @param entity_ The address of the entity to unblacklist.
      * @dev Only callable by the admin.
      */
-    function unblacklistEntity(uint256 policyId, address entity_) public {
+    function unblacklistEntity(uint256 policyId, address entity_) external {
         if (msg.sender != _admin) {
             revert ErrCallerNotAdmin(msg.sender);
+        }
+        if(_entityData[policyId][entity_].blacklisted == false) {
+            return;
         }
         EntityData memory ed = EntityData(false, 0);
         _entityData[policyId][entity_] = ed;
@@ -316,11 +348,11 @@ abstract contract KeyringCoreV2Base {
     * @custom:emits This function does not emit any events.
     * @custom:throws ErrCallerNotAdmin if the caller is not the admin.
     */
-    function collectFees(address to) public {
+    function collectFees(address to) external {
         if (msg.sender != _admin) {
             revert ErrCallerNotAdmin(msg.sender);
         }
-        payable(to).transfer(address(this).balance);
+        sendValue(payable(to), address(this).balance);
     }
 
 
@@ -331,7 +363,7 @@ abstract contract KeyringCoreV2Base {
      * @notice Internal function that creates a credential for an entity.
      * @param tradingAddress The trading address.
      * @param policyId The policy ID.
-     * @param creatBefore The time after which the credential is no longer valid for creation.
+     * @param createBefore The time after which the credential is no longer valid for creation.
      * @param validUntil The expiration time of the credential.
      * @param cost The cost of the credential.
      * @param key The RSA key.
@@ -340,11 +372,20 @@ abstract contract KeyringCoreV2Base {
     function _createCredential(
         address tradingAddress,
         uint256 policyId,
-        uint256 creatBefore,
+        uint256 createBefore,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,
-        bytes calldata backdoor) internal { 
+        bytes calldata backdoor) internal {
+        if ( policyId > type(uint24).max ) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "PID");
+        }
+        if ( createBefore > type(uint32).max ) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "CBF");
+        }
+        if ( validUntil > type(uint32).max ) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "BVU");
+        }
         // Verify the cost of the credential creation matches the value sent.
         if (msg.value != cost) {
             revert ErrInvalidCredential(policyId, tradingAddress, "VAL");
@@ -361,7 +402,7 @@ abstract contract KeyringCoreV2Base {
             }
         }
         {
-            if (block.timestamp > creatBefore) {
+            if (currentTime > createBefore) {
                 revert ErrInvalidCredential(policyId, tradingAddress, "EPO");
             }
         }
@@ -381,6 +422,19 @@ abstract contract KeyringCoreV2Base {
         // Update the entity data.
         // Emit the credential created event.
         emit CredentialCreated(policyId, tradingAddress, validUntil, backdoor);
+    }
+
+    /** 
+    * @notice Internal function that sends value to a recipient.
+    * @param recipient The address of the recipient.
+    * @param amount The amount to send.
+    * @dev Throws an error if the send fails.
+    */
+    function sendValue(address payable recipient, uint256 amount) internal {
+        (bool success, ) = recipient.call{value: amount}("");
+        if (!success) {
+            revert ErrFailedSendOfValue();
+        }
     }
 
 }

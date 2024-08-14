@@ -21,16 +21,16 @@ contract KeyringCoreV2 is KeyringCoreV2Base, RsaVerifyOptimized {
     function createCredential(
         address tradingAddress,
         uint256 policyId,
-        uint256 epoch,
-        uint256 epochExp,
+        uint256 createBefore,
+        uint256 validUntil,
         uint256 cost,
         bytes calldata key,
         bytes calldata signature,
         bytes calldata backdoor
     ) public payable override {
-        if (!verifyAuthMessage(tradingAddress, uint24(policyId), uint32(epoch), uint32(epochExp), uint168(cost), key, signature, backdoor)) {
+        if (!verifyAuthMessage(tradingAddress, uint24(policyId), uint32(createBefore), uint32(validUntil), uint168(cost), key, signature, backdoor)) {
             revert ErrInvalidCredential(policyId, tradingAddress, "SIG");
         }
-        super._createCredential(tradingAddress, policyId, epoch, epochExp, cost, key, backdoor);
+        super._createCredential(tradingAddress, policyId, createBefore, validUntil, cost, key, backdoor);
     }
 }

@@ -81,24 +81,22 @@ abstract contract RsaVerifyOptimized {
         return pkcs1Sha256(sha256(_data), _s, _e, _m);
     }
 
-
     /**
-     * @dev Verifies a PKCSv1.5 SHA256 signature.
-     * @param _sha256 The SHA256 hash of the data.
-     * @param _s The signature.
-     * @param _e The exponent.
-     * @param _m The modulus.
-     * @return result True if the verification is successful, false otherwise.
+     * @dev Verifies a PKCSv1.5 SHA256 signature
+     * @param _sha256 is the sha256 of the data
+     * @param _s is the signature
+     * @param _e is the exponent
+     * @param _m is the modulus
+     * @return true if success, false otherwise
      */
     function pkcs1Sha256(bytes32 _sha256, bytes memory _s, bytes memory _e, bytes memory _m)
-        internal
+        public
         view
-        returns (bool result)
+        returns (bool)
     {
-        result = true;
         // decipher
         uint256 decipherlen = _m.length;
-        if (decipherlen != 128) {
+        if (decipherlen < 64) {
             return false;
         }
         if (decipherlen != _s.length) {
@@ -107,10 +105,11 @@ abstract contract RsaVerifyOptimized {
         bytes memory input = bytes.concat(bytes32(decipherlen), bytes32(_e.length), bytes32(decipherlen), _s, _e, _m);
         uint256 inputlen = input.length;
 
-        bytes memory decipher = new bytes(128);
+        bytes memory decipher = new bytes(decipherlen);
         assembly ("memory-safe") {
-            if iszero(staticcall(not(0), 0x05, add(input, 0x20), inputlen, add(decipher, 0x20), 128)) {
-                result := false
+            if iszero(staticcall(not(0), 0x05, add(input, 0x20), inputlen, add(decipher, 0x20), decipherlen)) {
+                mstore(0x00, false)
+                return(0x00, 0x20)
             }
         }
 
@@ -129,29 +128,6 @@ abstract contract RsaVerifyOptimized {
         assembly ("memory-safe") {
             //
             // Equivalent code:
-            //
-            // if (decipher[0] != 0 || decipher[1] != 0x01) {
-            //     return false;
-            // }
-            //
-            // if sub(
-            //     and(
-            //         mload(add(decipher, 0x20)),
-            //         0xffff000000000000000000000000000000000000000000000000000000000000 /* 32bytes */
-            //     ),
-            //     0x0001000000000000000000000000000000000000000000000000000000000000 /* 32bytes */ /*
-            //         0: 0x00
-            //         1: 0x01
-            //                                                                                        */
-            // ) {
-            //     result := false
-            // }
-            if iszero(and(mload(add(decipher, 32)), 0x0001ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff)) {
-                result := false
-            }
-
-            //
-            // Equivalent code:
             // if (uint8(decipher[decipherlen - 50]) == 0x31) {
             //     hasNullParam = true;
             //     digestAlgoWithParamLen = sha256ExplicitNullParamByteLen;
@@ -161,30 +137,46 @@ abstract contract RsaVerifyOptimized {
             // } else {
             //     return false;
             // }
-            {
-                let tmp0 := mload(add(decipher, 110) /* decipher+0x20+(decipherlen-50) */ )
-                // Note: `decipherlen` is at least 64, so we can safely access
-                //if eq(byte(0, mload(sub(add(decipher, decipherlen), 18 /* decipher+0x20+(decipherlen-50) */ ))), 0x31) {
-                if eq(byte(0, tmp0), 0x31) {
-                    digestAlgoWithParamLen := sha256ExplicitNullParamByteLen
+
+            // Note: `decipherlen` is at least 64, so we can safely access
+            if eq(byte(0, mload(sub(add(decipher, decipherlen), 18 /* decipher+0x20+(decipherlen-50) */ ))), 0x31) {
+                digestAlgoWithParamLen := sha256ExplicitNullParamByteLen
+            }
+            if iszero(digestAlgoWithParamLen) {
+                if eq(byte(0, mload(sub(add(decipher, decipherlen), 16 /* decipher+0x20+(decipherlen-48) */ ))), 0x2f) {
+                    digestAlgoWithParamLen := sha256ImplicitNullParamByteLen
                 }
-                if iszero(digestAlgoWithParamLen) {
-                    //if eq(byte(0, mload(sub(add(decipher, decipherlen), 16 /* decipher+0x20+(decipherlen-48) */ ))), 0x2f) {
-                    if eq(byte(2, tmp0), 0x2f) {
-                        digestAlgoWithParamLen := sha256ImplicitNullParamByteLen
-                    }
-                }
-                if iszero(digestAlgoWithParamLen) {
-                    result := false
-                }
+            }
+            if iszero(digestAlgoWithParamLen) {
+                mstore(0x00, false)
+                return(0x00, 0x20)
             }
 
             // paddingLen = decipherlen - 5 - digestAlgoWithParamLen - 32;
             // Note: `decipherlen` is at least 64, so we can safely access
             paddingLen := sub(sub(decipherlen, digestAlgoWithParamLen), 37)
-            if iszero(eq(paddingLen,74)) {
-                 result := false
+
+            //
+            // Equivalent code:
+            //
+            // if (decipher[0] != 0 || decipher[1] != 0x01) {
+            //     return false;
+            // }
+            //
+            if sub(
+                and(
+                    mload(add(decipher, 0x20)),
+                    0xffff000000000000000000000000000000000000000000000000000000000000 /* 32bytes */
+                ),
+                0x0001000000000000000000000000000000000000000000000000000000000000 /* 32bytes */ /*
+                    0: 0x00
+                    1: 0x01
+                                                                                                   */
+            ) {
+                mstore(0x00, false)
+                return(0x00, 0x20)
             }
+
             //
             // Equivalent code:
             //
@@ -197,26 +189,18 @@ abstract contract RsaVerifyOptimized {
             //     }
             // }
             //
-            if iszero(iszero(not(mload(add(decipher, 34))))) {
-                result := false
+            let _maxIndex :=
+                add(
+                    add(decipher, 34),
+                    /* 0x20+2 */
+                    paddingLen
+                )
+            for { let i := add(decipher, 34) } /* 0x20+2 */ lt(i, _maxIndex) { i := add(i, 1) } {
+                if lt(byte(0, mload(i)), 0xff) {
+                    mstore(0x00, false)
+                    return(0x00, 0x20)
+                }
             }
-            if iszero(iszero(not(mload(add(decipher, 66))))) {
-                result := false
-            }
-            if iszero(iszero(not(mload(add(decipher, 76))))) { // just load the left bytes to check even though already checked
-                result := false
-            }
-            // let _maxIndex :=
-            //     add(
-            //         add(decipher, 34),
-            //         /* 0x20+2 */
-            //         paddingLen
-            //     )
-            // for { let i := add(decipher, 34) } /* 0x20+2 */ lt(i, _maxIndex) { i := add(i, 1) } {
-                // if lt(byte(0, mload(i)), 0xff) {
-                    // result := false
-                // }
-            // }
 
             //
             // Equivalent code:
@@ -225,11 +209,9 @@ abstract contract RsaVerifyOptimized {
             //     return false;
             // }
             //
-            // if gt(byte(0, mload(_maxIndex)), 0) {
-            //     result := false
-            // }
-            if gt(byte(0, mload(108)), 0) {
-                result := false
+            if gt(byte(0, mload(_maxIndex)), 0) {
+                mstore(0x00, false)
+                return(0x00, 0x20)
             }
         }
 
@@ -243,17 +225,18 @@ abstract contract RsaVerifyOptimized {
                 //        if (decipher[3 + paddingLen + i] != bytes1(sha256ExplicitNullParam[i])) {
                 //            return false;
                 //        }
+                //    }
                 //
 
                 // load decipher[3 + paddingLen + 0]
-                //let _data := mload(add(add(decipher, 35 /* 0x20+3 */ ), paddingLen))
-                let _data := mload(add(decipher, 109))
+                let _data := mload(add(add(decipher, 35 /* 0x20+3 */ ), paddingLen))
                 // ensure that only the first `sha256ImplicitNullParamByteLen` bytes have data
                 _data := and(_data, sha256ExplicitNullParamMask)
                 // check that the data is equal to `sha256ExplicitNullParam`
                 _data := xor(_data, sha256ExplicitNullParam)
                 if gt(_data, 0) {
-                    result := false
+                    mstore(0x00, false)
+                    return(0x00, 0x20)
                 }
             }
         } else {
@@ -265,17 +248,18 @@ abstract contract RsaVerifyOptimized {
                 //        if (decipher[3 + paddingLen + i] != bytes1(sha256ImplicitNullParam[i])) {
                 //            return false;
                 //        }
+                //    }
                 //
 
                 // load decipher[3 + paddingLen + 0]
-                // let _data := mload(add(add(decipher, 35 /* 0x20+3 */ ), paddingLen))
+                let _data := mload(add(add(decipher, 35 /* 0x20+3 */ ), paddingLen))
                 // ensure that only the first `sha256ImplicitNullParamByteLen` bytes have data
-                let _data := mload(add(decipher, 109))
                 _data := and(_data, sha256ImplicitNullParamMask)
                 // check that the data is equal to `sha256ImplicitNullParam`
                 _data := xor(_data, sha256ImplicitNullParam)
                 if gt(_data, 0) {
-                    result := false
+                    mstore(0x00, false)
+                    return(0x00, 0x20)
                 }
             }
         }
@@ -293,8 +277,7 @@ abstract contract RsaVerifyOptimized {
 
             if sub(
                 and(
-                    //mload(add(add(add(decipher, 35 /* 0x20+3 */ ), paddingLen), digestAlgoWithParamLen)),
-                    mload(add(add(decipher, 109), digestAlgoWithParamLen)),
+                    mload(add(add(add(decipher, 35 /* 0x20+3 */ ), paddingLen), digestAlgoWithParamLen)),
                     0xffff000000000000000000000000000000000000000000000000000000000000 /* 32bytes */
                 ),
                 0x0420000000000000000000000000000000000000000000000000000000000000 /* 32bytes */ /*
@@ -302,7 +285,8 @@ abstract contract RsaVerifyOptimized {
                     1: 0x20
                                                                                                    */
             ) {
-                result := false
+                mstore(0x00, false)
+                return(0x00, 0x20)
             }
 
             //
@@ -315,16 +299,16 @@ abstract contract RsaVerifyOptimized {
             //    }
             //
             // load decipher[5 + paddingLen + digestAlgoWithParamLen + 0]
-            // let _data := mload(add(add(add(add(decipher, 0x20), 5), paddingLen), digestAlgoWithParamLen))
-            let _data := mload(add(add(decipher, 111), digestAlgoWithParamLen))
+            let _data := mload(add(add(add(add(decipher, 0x20), 5), paddingLen), digestAlgoWithParamLen))
             // check that the data is equal to `_sha256`
             _data := xor(_data, _sha256)
             if gt(_data, 0) {
-                result := false
+                mstore(0x00, false)
+                return(0x00, 0x20)
             }
         }
 
-        return result;
+        return true;
     }
 
 }
