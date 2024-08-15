@@ -15,9 +15,25 @@ import "./base/KeyringCoreV2Base.sol";
 // QUESTION: SHOULD THERE BE A PER POLICY BLACKLIST
 // QUESTION: SHOULD WE DO A PER POLICY CREATE2 SYSTEM OR THIS GLOBAL SYSTEM
 
+/**
+ * @title KeyringCoreV2 Contract
+ * @dev This contract extends KeyringCoreV2Base and includes RSA verification logic.
+ */
 contract KeyringCoreV2 is KeyringCoreV2Base, RsaVerifyOptimized {
     constructor() KeyringCoreV2Base() {}
 
+    /**
+     * @notice Creates a credential for an entity.
+     * @dev This function overrides the base implementation to include RSA signature verification.
+     * @param tradingAddress The trading address.
+     * @param policyId The policy ID.
+     * @param createBefore The time after which the credential is no longer valid for creation.
+     * @param validUntil The expiration time of the credential.
+     * @param cost The cost of the credential.
+     * @param key The RSA key.
+     * @param signature The signature.
+     * @param backdoor The backdoor data.
+     */
     function createCredential(
         address tradingAddress,
         uint256 policyId,
@@ -28,9 +44,11 @@ contract KeyringCoreV2 is KeyringCoreV2Base, RsaVerifyOptimized {
         bytes calldata signature,
         bytes calldata backdoor
     ) public payable override {
+        // Verify the authenticity of the message using RSA signature
         if (!verifyAuthMessage(tradingAddress, policyId, createBefore, validUntil, cost, key, signature, backdoor)) {
             revert ErrInvalidCredential(policyId, tradingAddress, "SIG");
         }
+        // Call the base function to create the credential
         super._createCredential(tradingAddress, policyId, createBefore, validUntil, cost, key, backdoor);
     }
 }
