@@ -17,4 +17,4 @@ if [ -n "$container_id" ]; then
 fi
 
 # Run the rest of the commands inside Docker container
-docker run --name testnet -p 8545:8545 core-v2:testnet
+docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment up

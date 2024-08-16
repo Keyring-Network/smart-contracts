@@ -70,5 +70,41 @@ done
 echo "Deployer private key: $PRV_KEY"
 
 # Assumes ``$ forge build`` has already been run
-# Deploy the contract using Forge
-forge script "$ROOT/script/unsafe.s.sol" --rpc-url $RPC_URL --private-key $PRV_KEY --broadcast
+# Deploy the prod contract using Forge
+forge script "$ROOT/script/deploy/nonupgradable.s.sol" --rpc-url $RPC_URL --private-key $PRV_KEY --broadcast
+
+# Save the deployed contract address to a local file
+addr=$(
+    cast receipt --rpc-url $RPC_URL \
+    $(
+        cast bn --rpc-url $RPC_URL | \
+        cast bl --rpc-url $RPC_URL --full -j | \
+        jq '.transactions[0].hash' | \
+        sed 's/"//g'
+    ) \
+    contractAddress
+)
+echo "Deployed contract address: $addr"
+# save the address to a file for later use
+echo $addr > "$ROOT/out/KeyringCoreV2.sol/KeyringCoreV2.address"
+echo "Contract address saved to $ROOT/out/KeyringCoreV2.sol/KeyringCoreV2.address"
+
+# Deploy the unsafe contract as well using Forge
+forge script "$ROOT/script/deploy/unsafe.s.sol" --rpc-url $RPC_URL --private-key $PRV_KEY --broadcast
+
+# Save the deployed contract address to a local file
+addr=$(
+    cast receipt --rpc-url $RPC_URL \
+    $(
+        cast bn --rpc-url $RPC_URL | \
+        cast bl --rpc-url $RPC_URL --full -j | \
+        jq '.transactions[0].hash' | \
+        sed 's/"//g'
+    ) \
+    contractAddress
+)
+echo "Deployed contract address: $addr"
+# save the address to a file for later use
+echo $addr > "$ROOT/out/KeyringCoreV2Unsafe.sol/KeyringCoreV2Unsafe.address"
+echo "Contract address saved to $ROOT/out/KeyringCoreV2Unsafe.sol/KeyringCoreV2Unsafe.address"
+
