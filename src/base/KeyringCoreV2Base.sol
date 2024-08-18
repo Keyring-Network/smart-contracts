@@ -207,6 +207,13 @@ abstract contract KeyringCoreV2Base {
         return false;
     }
 
+    /**
+     * @notice Checks if two entities have valid credentials.
+     * @param policyId The ID of the policy.
+     * @param entityA_ The address of the first entity.
+     * @param entityB_ The address of the second entity.
+     * @return True if both entities have valid credentials, false otherwise.
+     */
     function checkCredential(uint256 policyId, address entityA_, address entityB_) public view returns (bool) {
         return checkCredential(policyId, entityA_) && checkCredential(policyId, entityB_);
     }
@@ -222,12 +229,11 @@ abstract contract KeyringCoreV2Base {
     }
 
     // CREDENTIAL CREATION
-
     /**
      * @notice Creates a credential for an entity.
      * @param tradingAddress The trading address.
      * @param policyId The policy ID.
-     * @param createBefore The time after which the credential is no longer valid for creation.
+     * @param validFrom The time from which a credential is valid.
      * @param validUntil The expiration time of the credential.
      * @param cost The cost of the credential.
      * @param key The RSA key.
@@ -237,14 +243,14 @@ abstract contract KeyringCoreV2Base {
     function createCredential(
         address tradingAddress,
         uint256 policyId,
-        uint256 createBefore,
+        uint256 validFrom,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,
         bytes calldata signature,
         bytes calldata backdoor
     ) external virtual payable {
-        _createCredential(tradingAddress, policyId, createBefore, validUntil, cost, key, backdoor);
+        _createCredential(tradingAddress, policyId, validFrom, validUntil, cost, key, backdoor);
     }
 
     // ADMIN CAPABILITIES
@@ -363,7 +369,7 @@ abstract contract KeyringCoreV2Base {
      * @notice Internal function that creates a credential for an entity.
      * @param tradingAddress The trading address.
      * @param policyId The policy ID.
-     * @param createBefore The time after which the credential is no longer valid for creation.
+     * @param validFrom The time from which a credential is valid.
      * @param validUntil The expiration time of the credential.
      * @param cost The cost of the credential.
      * @param key The RSA key.
@@ -372,7 +378,7 @@ abstract contract KeyringCoreV2Base {
     function _createCredential(
         address tradingAddress,
         uint256 policyId,
-        uint256 createBefore,
+        uint256 validFrom,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,
@@ -380,7 +386,7 @@ abstract contract KeyringCoreV2Base {
         if ( policyId > type(uint24).max ) {
             revert ErrInvalidCredential(policyId, tradingAddress, "PID");
         }
-        if ( createBefore > type(uint32).max ) {
+        if ( validFrom > type(uint32).max ) {
             revert ErrInvalidCredential(policyId, tradingAddress, "CBF");
         }
         if ( validUntil > type(uint32).max ) {
@@ -404,10 +410,9 @@ abstract contract KeyringCoreV2Base {
                 revert ErrInvalidCredential(policyId, tradingAddress, "BDK");
             }
         }
-        {
-            if (currentTime > createBefore) {
-                revert ErrInvalidCredential(policyId, tradingAddress, "EPO");
-            }
+        // Calculate the expiration for the credential.
+        if (validUntil < currentTime) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "EXP");
         }
         // Load the entity data.
         EntityData memory ed = _entityData[policyId][tradingAddress];
@@ -415,9 +420,8 @@ abstract contract KeyringCoreV2Base {
         if (ed.blacklisted) {
             revert ErrInvalidCredential(policyId, tradingAddress, "BLK");
         }
-        // Calculate the expiration for the credential.
-        if (validUntil < currentTime) {
-            revert ErrInvalidCredential(policyId, tradingAddress, "EXP");
+        if (validUntil <= ed.exp) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "STL");
         }
         // Set the expiration for the entity.
         ed.exp = uint64(validUntil);

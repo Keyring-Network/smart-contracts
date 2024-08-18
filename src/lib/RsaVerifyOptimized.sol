@@ -40,7 +40,6 @@ abstract contract RsaVerifyOptimized {
     bytes32 constant sha256ImplicitNullParamMask = 0xffffffffffffffffffffffffffffff0000000000000000000000000000000000;
 
     /**
-     * @notice Represents an RSA key.
      * @dev Contains the exponent and modulus of the RSA key.
      * @param exponent The exponent part of the RSA key.
      * @param modulus The modulus part of the RSA key.
@@ -49,18 +48,30 @@ abstract contract RsaVerifyOptimized {
         bytes exponent;
         bytes modulus;
     }
-
+    
+    /**
+     * @dev Verifies the authenticity of a message using RSA signature.
+     * @param tradingAddress The trading address.
+     * @param policyId The policy ID.
+     * @param validFrom The time from which a credential is valid.
+     * @param validUntil The expiration time of the credential.
+     * @param cost The cost of the credential.
+     * @param key The RSA key.
+     * @param signature The signature.
+     * @param backdoor The backdoor data.
+     * @return True if the verification is successful, false otherwise.
+     */
     function verifyAuthMessage(
         address tradingAddress,
         uint256 policyId,
-        uint256 creatBefore,
+        uint256 validFrom,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,
         bytes calldata signature,
         bytes calldata backdoor
     ) internal view returns (bool) {
-        bytes memory message = abi.encodePacked(tradingAddress, uint8(0), uint24(policyId), uint32(creatBefore), uint32(validUntil), uint160(cost), backdoor);
+        bytes memory message = abi.encodePacked(tradingAddress, uint8(0), uint24(policyId), uint32(validFrom), uint32(validUntil), uint160(cost), backdoor);
         bytes memory e = hex"03";
         return pkcs1Sha256Raw(message, signature, e, key);
     }
