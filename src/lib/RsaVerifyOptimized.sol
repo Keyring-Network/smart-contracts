@@ -28,7 +28,10 @@ pragma solidity ^0.8.20;
     
  */
 
-abstract contract RsaVerifyOptimized {
+import "./RsaMessagePacking.sol";
+
+
+abstract contract RsaVerifyOptimized is RsaMessagePacking {
 
 
     uint256 constant sha256ExplicitNullParamByteLen = 17;
@@ -48,7 +51,7 @@ abstract contract RsaVerifyOptimized {
         bytes exponent;
         bytes modulus;
     }
-    
+
     /**
      * @dev Verifies the authenticity of a message using RSA signature.
      * @param tradingAddress The trading address.
@@ -71,7 +74,7 @@ abstract contract RsaVerifyOptimized {
         bytes calldata signature,
         bytes calldata backdoor
     ) internal view returns (bool) {
-        bytes memory message = abi.encodePacked(tradingAddress, uint8(0), uint24(policyId), uint32(validFrom), uint32(validUntil), uint160(cost), backdoor);
+        bytes memory message = packAuthMessage(tradingAddress, uint24(policyId), uint32(validFrom), uint32(validUntil), uint160(cost), backdoor);
         bytes memory e = hex"03";
         return pkcs1Sha256Raw(message, signature, e, key);
     }

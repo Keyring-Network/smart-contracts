@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "../src/unsafe/KeyringCoreV2Unsafe.sol";
-
+import "../src/lib/RsaMessagePacking.sol";
 
 contract KeyringCoreV2UnsafeTest is Test {
     KeyringCoreV2Unsafe internal keyring;
@@ -125,7 +125,7 @@ contract KeyringCoreV2UnsafeTest is Test {
         uint256 validUntil = block.timestamp + 1 days;
         vm.warp(block.timestamp + 1 days + 1 minutes);
 
-        vm.expectRevert(abi.encodeWithSelector(KeyringCoreV2Base.ErrInvalidCredential.selector, 1, nonAdmin, "EXP"));
+        vm.expectRevert(abi.encodeWithSelector(RsaMessagePacking.ErrInvalidCredential.selector, 1, nonAdmin, "EXP"));
         keyring.createCredential{value: 1 ether}(nonAdmin, 1, createBefore, validUntil, 1 ether, testKey, "", "");
     }
 
@@ -166,7 +166,7 @@ contract KeyringCoreV2UnsafeTest is Test {
         uint256 createBefore = block.timestamp + 5 minutes;
         uint256 validUntil = block.timestamp + 1 days;
 
-        vm.expectRevert(abi.encodeWithSelector(KeyringCoreV2Base.ErrInvalidCredential.selector, 1, nonAdmin, "VAL"));
+        vm.expectRevert(abi.encodeWithSelector(RsaMessagePacking.ErrInvalidCredential.selector, 1, nonAdmin, "VAL"));
         keyring.createCredential{value: 0.5 ether}(nonAdmin, 1, createBefore, validUntil, 1 ether, testKey, "", "");
     }
 
@@ -178,7 +178,7 @@ contract KeyringCoreV2UnsafeTest is Test {
         uint256 createBefore = block.timestamp + 5 minutes;
         uint256 validUntil = block.timestamp + 1 days;
 
-        vm.expectRevert(abi.encodeWithSelector(KeyringCoreV2Base.ErrInvalidCredential.selector, 1, nonAdmin, "BDK"));
+        vm.expectRevert(abi.encodeWithSelector(RsaMessagePacking.ErrInvalidCredential.selector, 1, nonAdmin, "BDK"));
         keyring.createCredential{value: 1 ether}(nonAdmin, 1, createBefore, validUntil, 1 ether, testKey, "", "");
     }
 
@@ -189,7 +189,7 @@ contract KeyringCoreV2UnsafeTest is Test {
         uint256 createBefore = block.timestamp - 1 days;
         uint256 validUntil = block.timestamp + 1 days;
 
-        vm.expectRevert(abi.encodeWithSelector(KeyringCoreV2Base.ErrInvalidCredential.selector, 1, nonAdmin, "EPO"));
+        vm.expectRevert(abi.encodeWithSelector(RsaMessagePacking.ErrInvalidCredential.selector, 1, nonAdmin, "EPO"));
         keyring.createCredential{value: 1 ether}(nonAdmin, 1, createBefore, validUntil, 1 ether, testKey, "", "");
     }
 
@@ -201,7 +201,7 @@ contract KeyringCoreV2UnsafeTest is Test {
         uint256 createBefore = block.timestamp + 5 minutes;
         uint256 validUntil = block.timestamp + 1 days;
 
-        vm.expectRevert(abi.encodeWithSelector(KeyringCoreV2Base.ErrInvalidCredential.selector, 1, nonAdmin, "BLK"));
+        vm.expectRevert(abi.encodeWithSelector(RsaMessagePacking.ErrInvalidCredential.selector, 1, nonAdmin, "BLK"));
         keyring.createCredential{value: 1 ether}(nonAdmin, 1, createBefore, validUntil, 1 ether, testKey, "", "");
     }
 
@@ -212,7 +212,7 @@ contract KeyringCoreV2UnsafeTest is Test {
         uint256 createBefore = block.timestamp + 2 days;
         uint256 validUntil = block.timestamp + 1 days;
 
-        vm.expectRevert(abi.encodeWithSelector(KeyringCoreV2Base.ErrInvalidCredential.selector, 1, nonAdmin, "BDK"));
+        vm.expectRevert(abi.encodeWithSelector(RsaMessagePacking.ErrInvalidCredential.selector, 1, nonAdmin, "BDK"));
         vm.warp(block.timestamp + 2 days);
         keyring.createCredential{value: 1 ether}(nonAdmin, 1, createBefore, validUntil, 1 ether, testKey, "", "");
     }

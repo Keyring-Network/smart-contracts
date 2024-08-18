@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
+import "../lib/RsaMessagePacking.sol";
+
 /**
  * @title KeyringCoreV2 Contract
  * @dev This contract manages policy states, credentials, and whitelisting/blacklisting of entities.
  */
-abstract contract KeyringCoreV2Base {
+abstract contract KeyringCoreV2Base is RsaMessagePacking {
 
     /**
      * @notice Represents data associated with an entity.
@@ -38,12 +40,6 @@ abstract contract KeyringCoreV2Base {
     /// @notice Error for invalid key registration.
     /// @param reason The reason for the invalid key registration.
     error ErrInvalidKeyRegistration(string reason);
-
-    /// @notice Error for expired credential.
-    /// @param policyId The ID of the policy.
-    /// @param entity The address of the entity.
-    /// @param reason The reason for the invalid credential.
-    error ErrInvalidCredential(uint256 policyId, address entity, string reason);
 
     /// @notice Error for key not found.
     /// @param keyHash The hash of the key that was not found.
@@ -383,18 +379,6 @@ abstract contract KeyringCoreV2Base {
         uint256 cost,
         bytes calldata key,
         bytes calldata backdoor) internal {
-        if ( policyId > type(uint24).max ) {
-            revert ErrInvalidCredential(policyId, tradingAddress, "PID");
-        }
-        if ( validFrom > type(uint32).max ) {
-            revert ErrInvalidCredential(policyId, tradingAddress, "CBF");
-        }
-        if ( validUntil > type(uint32).max ) {
-            revert ErrInvalidCredential(policyId, tradingAddress, "BVU");
-        }
-        if ( cost > type(uint128).max ) {
-            revert ErrInvalidCredential(policyId, tradingAddress, "CST");
-        }
         // Verify the cost of the credential creation matches the value sent.
         if (msg.value != cost) {
             revert ErrInvalidCredential(policyId, tradingAddress, "VAL");
