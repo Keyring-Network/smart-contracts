@@ -246,7 +246,7 @@ abstract contract KeyringCoreV2Base is RsaMessagePacking {
         bytes calldata signature,
         bytes calldata backdoor
     ) external virtual payable {
-        _createCredential(tradingAddress, policyId, validFrom, validUntil, cost, key, backdoor);
+        _createCredential(tradingAddress, policyId, validUntil, cost, key, backdoor);
     }
 
     // ADMIN CAPABILITIES
@@ -365,7 +365,6 @@ abstract contract KeyringCoreV2Base is RsaMessagePacking {
      * @notice Internal function that creates a credential for an entity.
      * @param tradingAddress The trading address.
      * @param policyId The policy ID.
-     * @param validFrom The time from which a credential is valid.
      * @param validUntil The expiration time of the credential.
      * @param cost The cost of the credential.
      * @param key The RSA key.
@@ -374,7 +373,6 @@ abstract contract KeyringCoreV2Base is RsaMessagePacking {
     function _createCredential(
         address tradingAddress,
         uint256 policyId,
-        uint256 validFrom,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,

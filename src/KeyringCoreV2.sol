@@ -49,6 +49,6 @@ contract KeyringCoreV2 is KeyringCoreV2Base, RsaVerifyOptimized {
             revert ErrInvalidCredential(policyId, tradingAddress, "SIG");
         }
         // Call the base function to create the credential
-        super._createCredential(tradingAddress, policyId, validFrom, validUntil, cost, key, backdoor);
+        super._createCredential(tradingAddress, policyId, validUntil, cost, key, backdoor);
     }
 }
