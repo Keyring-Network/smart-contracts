@@ -1,13 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-abstract contract RsaMessagePacking {
+import "../interfaces/ICoreV2Base.sol";
 
-    /// @notice Error for expired credential.
-    /// @param policyId The ID of the policy.
-    /// @param entity The address of the entity.
-    /// @param reason The reason for the invalid credential.
-    error ErrInvalidCredential(uint256 policyId, address entity, string reason);
+abstract contract RsaMessagePacking is ICoreV2Base {
 
     /**
      * @dev Packing format of the message to be signed.
