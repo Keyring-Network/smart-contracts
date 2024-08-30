@@ -12,4 +12,7 @@ docs/
 
 # Dotenv file
 .env
-.aider*
+.env.test
+.env.uat
+.env.staging
+.env.prod

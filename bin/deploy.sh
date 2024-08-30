@@ -71,7 +71,7 @@ echo "Deployer private key: $PRV_KEY"
 
 # Assumes ``$ forge build`` has already been run
 # Deploy the prod contract using Forge
-forge script "$ROOT/script/deploy/nonupgradable.s.sol" --rpc-url $RPC_URL --private-key $PRV_KEY --broadcast
+forge script "$ROOT/script/nonupgradable.s.sol" --rpc-url $RPC_URL --private-key $PRV_KEY --broadcast
 
 # Save the deployed contract address to a local file
 addr=$(
@@ -86,11 +86,11 @@ addr=$(
 )
 echo "Deployed contract address: $addr"
 # save the address to a file for later use
-echo $addr > "$ROOT/out/KeyringCoreV2.sol/KeyringCoreV2.address"
-echo "Contract address saved to $ROOT/out/KeyringCoreV2.sol/KeyringCoreV2.address"
+echo $addr > "$ROOT/out-test/KeyringCoreV2.sol/KeyringCoreV2.address"
+echo "Contract address saved to $ROOT/out-test/KeyringCoreV2.sol/KeyringCoreV2.address"
 
 # Deploy the unsafe contract as well using Forge
-forge script "$ROOT/script/deploy/unsafe.s.sol" --rpc-url $RPC_URL --private-key $PRV_KEY --broadcast
+forge script "$ROOT/script/unsafe.s.sol" --rpc-url $RPC_URL --private-key $PRV_KEY --broadcast
 
 # Save the deployed contract address to a local file
 addr=$(
@@ -105,6 +105,6 @@ addr=$(
 )
 echo "Deployed contract address: $addr"
 # save the address to a file for later use
-echo $addr > "$ROOT/out/KeyringCoreV2Unsafe.sol/KeyringCoreV2Unsafe.address"
-echo "Contract address saved to $ROOT/out/KeyringCoreV2Unsafe.sol/KeyringCoreV2Unsafe.address"
+echo $addr > "$ROOT/out-test/KeyringCoreV2Unsafe.sol/KeyringCoreV2Unsafe.address"
+echo "Contract address saved to $ROOT/out-test/KeyringCoreV2Unsafe.sol/KeyringCoreV2Unsafe.address"
 

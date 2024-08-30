@@ -49,7 +49,8 @@ contract KeyringCoreV2UnsafeTest is Test {
         string memory json = vm.readFile(path);
         bytes memory data = vm.parseJson(json);
         TestVectors memory testVectors = abi.decode(data, (TestVectors));
-        for (uint256 i = 0; i < testVectors.vectors.length; i++) {
+        uint256 i = 0;
+        for (; i < testVectors.vectors.length; i++) {
             TestVector memory vector = testVectors.vectors[i];
             bool result = keyring.verify(
                 vector.tradingAddress,
@@ -63,5 +64,7 @@ contract KeyringCoreV2UnsafeTest is Test {
             );
             assertTrue(result == vector.expected);
         }
+        assertTrue(i == testVectors.vectors.length);
+        console.log("All tests passed", i);
     }
 }

@@ -116,15 +116,18 @@ abstract contract RsaVerifyOptimized is RsaMessagePacking {
         if (decipherlen != _s.length) {
             return false;
         }
+        bool result = true;
         bytes memory input = bytes.concat(bytes32(decipherlen), bytes32(_e.length), bytes32(decipherlen), _s, _e, _m);
         uint256 inputlen = input.length;
 
         bytes memory decipher = new bytes(decipherlen);
         assembly ("memory-safe") {
             if iszero(staticcall(not(0), 0x05, add(input, 0x20), inputlen, add(decipher, 0x20), decipherlen)) {
-                mstore(0x00, false)
-                return(0x00, 0x20)
+                result := false
             }
+        }
+        if (!result) {
+            return false;
         }
 
         // Check that is well encoded:
@@ -162,8 +165,7 @@ abstract contract RsaVerifyOptimized is RsaMessagePacking {
                 }
             }
             if iszero(digestAlgoWithParamLen) {
-                mstore(0x00, false)
-                return(0x00, 0x20)
+                result := false
             }
 
             // paddingLen = decipherlen - 5 - digestAlgoWithParamLen - 32;
@@ -187,8 +189,7 @@ abstract contract RsaVerifyOptimized is RsaMessagePacking {
                     1: 0x01
                                                                                                    */
             ) {
-                mstore(0x00, false)
-                return(0x00, 0x20)
+                result := false
             }
 
             //
@@ -211,8 +212,7 @@ abstract contract RsaVerifyOptimized is RsaMessagePacking {
                 )
             for { let i := add(decipher, 34) } /* 0x20+2 */ lt(i, _maxIndex) { i := add(i, 1) } {
                 if lt(byte(0, mload(i)), 0xff) {
-                    mstore(0x00, false)
-                    return(0x00, 0x20)
+                    result := false
                 }
             }
 
@@ -224,9 +224,11 @@ abstract contract RsaVerifyOptimized is RsaMessagePacking {
             // }
             //
             if gt(byte(0, mload(_maxIndex)), 0) {
-                mstore(0x00, false)
-                return(0x00, 0x20)
+                result := false
             }
+        }
+        if (!result) {
+            return false;
         }
 
         // check digest algorithm
@@ -249,8 +251,7 @@ abstract contract RsaVerifyOptimized is RsaMessagePacking {
                 // check that the data is equal to `sha256ExplicitNullParam`
                 _data := xor(_data, sha256ExplicitNullParam)
                 if gt(_data, 0) {
-                    mstore(0x00, false)
-                    return(0x00, 0x20)
+                    result := false
                 }
             }
         } else {
@@ -272,10 +273,12 @@ abstract contract RsaVerifyOptimized is RsaMessagePacking {
                 // check that the data is equal to `sha256ImplicitNullParam`
                 _data := xor(_data, sha256ImplicitNullParam)
                 if gt(_data, 0) {
-                    mstore(0x00, false)
-                    return(0x00, 0x20)
+                    result := false
                 }
             }
+        }
+        if (!result) {
+            return false;
         }
 
         // check digest
@@ -299,8 +302,7 @@ abstract contract RsaVerifyOptimized is RsaMessagePacking {
                     1: 0x20
                                                                                                    */
             ) {
-                mstore(0x00, false)
-                return(0x00, 0x20)
+                result := false
             }
 
             //
@@ -317,11 +319,12 @@ abstract contract RsaVerifyOptimized is RsaMessagePacking {
             // check that the data is equal to `_sha256`
             _data := xor(_data, _sha256)
             if gt(_data, 0) {
-                mstore(0x00, false)
-                return(0x00, 0x20)
+                result := false
             }
         }
-
+        if (!result) {
+            return false;
+        }
         return true;
     }
 

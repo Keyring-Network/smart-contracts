@@ -31,6 +31,9 @@ interface ICoreV2Base {
         uint64 validTo;
     }
 
+    /// @notice This error is returned if the contract is already initialized. Prevents double set of admin on upgrade.
+    error ErrAlreadyInitialized();
+
     /// @notice Error for unauthorized admin caller.
     /// @param caller The address of the unauthorized caller.
     error ErrCallerNotAdmin(address caller);

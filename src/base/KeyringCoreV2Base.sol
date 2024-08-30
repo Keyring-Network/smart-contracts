@@ -11,18 +11,23 @@ import "../interfaces/ICoreV2Base.sol";
 abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
 
     /// @dev Address of the admin.
-    address private _admin;
+    address internal _admin;
 
     /// @dev Mapping from key hash to key entry.
-    mapping(bytes32 => KeyEntry) private _keys;
+    mapping(bytes32 => KeyEntry) internal _keys;
 
     /// @dev Mapping from policy ID and address to entity data.
-    mapping(uint256 => mapping(address => EntityData)) private _entityData;
+    mapping(uint256 => mapping(address => EntityData)) internal _entityData;
 
     /**
      * @dev Initializes the contract setting the deployer as the initial admin.
+     * @dev This function is called only once during the contract deployment.
+     * @dev This should NOT be called after the initial upgrade to avoid double initialization.
      */
-    constructor() {
+    function _initialize() internal {
+        if (_admin != address(0)) {
+            revert ErrAlreadyInitialized();
+        }
         _admin = msg.sender;
         emit AdminSet(address(0), msg.sender);
     }
@@ -33,7 +38,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      * @notice Returns the address of the admin.
      * @return The address of the admin.
      */
-    function admin() public view returns (address) {
+    function admin() external returns (address) {
         return _admin;
     }
 
@@ -60,7 +65,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      * @param keyHash The hash of the key.
      * @return The start time of the key's validity.
      */
-    function keyValidFrom(bytes32 keyHash) public view returns (uint256) {
+    function keyValidFrom(bytes32 keyHash) external view returns (uint256) {
         return _keys[keyHash].validFrom;
     }
 
@@ -69,7 +74,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      * @param keyHash The hash of the key.
      * @return The end time of the key's validity.
      */
-    function keyValidTo(bytes32 keyHash) public view returns (uint256) {
+    function keyValidTo(bytes32 keyHash) external view returns (uint256) {
         return _keys[keyHash].validTo;
     }
 
@@ -78,7 +83,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      * @param keyHash The hash of the key.
      * @return The KeyEntry struct containing key details.
      */
-    function keyDetails(bytes32 keyHash) public view returns (KeyEntry memory) {
+    function keyDetails(bytes32 keyHash) external view returns (KeyEntry memory) {
         return _keys[keyHash];
     }
 
@@ -88,7 +93,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      * @param entity_ The address of the entity.
      * @return True if the entity is blacklisted, false otherwise.
      */
-    function entityBlacklisted(uint256 policyId, address entity_) public view returns (bool) {
+    function entityBlacklisted(uint256 policyId, address entity_) external view returns (bool) {
         return _entityData[policyId][entity_].blacklisted;
     }
 
@@ -98,7 +103,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      * @param entity_ The address of the entity.
      * @return The expiration of the entity credential.
      */
-    function entityExp(uint256 policyId, address entity_) public view returns (uint256) {
+    function entityExp(uint256 policyId, address entity_) external view returns (uint256) {
         return _entityData[policyId][entity_].exp;
     }
 
@@ -108,7 +113,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      * @param entity_ The address of the entity.
      * @return The EntityData struct containing blacklisting and expiration information.
      */
-    function entityData(uint256 policyId, address entity_) public view returns (EntityData memory) {
+    function entityData(uint256 policyId, address entity_) external view returns (EntityData memory) {
         return _entityData[policyId][entity_];
     }
 
@@ -133,7 +138,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      * @param entityB_ The address of the second entity.
      * @return True if both entities have valid credentials, false otherwise.
      */
-    function checkCredential(uint256 policyId, address entityA_, address entityB_) public view returns (bool) {
+    function checkCredential(uint256 policyId, address entityA_, address entityB_) external view returns (bool) {
         return checkCredential(policyId, entityA_) && checkCredential(policyId, entityB_);
     }
 
@@ -143,7 +148,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      * @param entity_ The address of the entity to check.
      * @return True if the entity has a valid credential, false otherwise.
      */
-    function checkCredential(address entity_, uint32 policyId) public view returns (bool) {
+    function checkCredential(address entity_, uint32 policyId) external view returns (bool) {
         return checkCredential(policyId, entity_);
     }
 
@@ -281,7 +286,6 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
     }
 
 
-
     // INTERNAL FUNCTIONS
 
     /**
@@ -342,7 +346,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
     * @param amount The amount to send.
     * @dev Throws an error if the send fails.
     */
-    function sendValue(address payable recipient, uint256 amount) internal {
+    function sendValue(address payable recipient, uint256 amount) private {
         (bool success, ) = recipient.call{value: amount}("");
         if (!success) {
             revert ErrFailedSendOfValue();

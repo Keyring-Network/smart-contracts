@@ -1,6 +1,39 @@
 [profile.default]
 src = "src"
-out = "out"
 libs = ["lib"]
-fs_permissions = [{ access = "read", path = "./"}]
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
+out = "out-test"
+fs_permissions = [{ access = "read", path = "out-test" }, { access = "read", path = "test/rsa_vectors"}]
+
+[profile.uat]
+src = "src"
+libs = ["lib"]
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
+out = "out-uat"
+fs_permissions = [{ access = "read", path = "out-uat" }]
+
+[profile.staging]
+src = "src"
+libs = ["lib"]
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
+out = "out-staging"
+fs_permissions = [{ access = "read", path = "out-staging" }]
+
+[profile.prod]
+src = "src"
+libs = ["lib"]
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
+out = "out-prod"
+fs_permissions = [{ access = "read", path = "out-prod" }]
