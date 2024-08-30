@@ -18,6 +18,15 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     openssl \
     xxd
 
+ENV NVM_DIR /usr/local/nvm
+RUN mkdir -p $NVM_DIR
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+ENV NODE_VERSION v18.17.0
+RUN /bin/bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm use --delete-prefix $NODE_VERSION"
+
+ENV NODE_PATH $NVM_DIR/versions/node/$NODE_VERSION/lib/node_modules
+ENV PATH      $NVM_DIR/versions/node/$NODE_VERSION/bin:$PATH
+
 # Install Foundry (Forge and Cast)
 RUN curl -L https://foundry.paradigm.xyz | bash \
     && ~/.foundry/bin/foundryup
@@ -32,6 +41,7 @@ WORKDIR /usr/src/app
 COPY .git .git
 COPY foundry.toml .
 COPY lib ./lib
+COPY remappings.txt .
 
 # Initialize the Forge project
 RUN forge install

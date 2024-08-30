@@ -15,4 +15,4 @@ if [ -n "$container_id" ]; then
     docker rm -f $container_id > /dev/null
 fi
 
-docker run --name solidity-tests core-v2:latest /bin/bash -c "forge test"
+docker run --name solidity-tests core-v2:latest /bin/bash -c 'export FOUNDRY_OUT="out-test" && forge clean && forge test -o $FOUNDRY_OUT'
