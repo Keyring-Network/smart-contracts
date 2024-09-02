@@ -74,7 +74,7 @@ abstract contract RsaVerifyOptimized is RsaMessagePacking {
         bytes calldata signature,
         bytes calldata backdoor
     ) internal view returns (bool) {
-        bytes memory message = packAuthMessage(tradingAddress, uint24(policyId), uint32(validFrom), uint32(validUntil), uint160(cost), backdoor);
+        bytes memory message = packAuthMessage(tradingAddress, policyId, validFrom, validUntil, cost, backdoor);
         bytes memory e = hex"03";
         return pkcs1Sha256Raw(message, signature, e, key);
     }
