@@ -16,6 +16,12 @@ import {KeyringCoreV2Base} from "./base/KeyringCoreV2Base.sol";
  */
 contract CoreV2_3 is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVerifyOptimized, KeyringCoreV2Base {
     
+
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor(address _credentialCache_) {
+        _disableInitializers();
+    }
+
     function initialize() onlyOwner reinitializer(3) public {
         KeyringCoreV2Base._initialize();
     }
