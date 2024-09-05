@@ -18,7 +18,7 @@ contract CoreV2_3 is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVer
     
 
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _credentialCache_) {
+    constructor() {
         _disableInitializers();
     }
 
