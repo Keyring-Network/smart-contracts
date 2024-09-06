@@ -14,7 +14,7 @@ import "./common/deployments.sol";
 string constant OLDFILE = "CoreV2_2.sol";
 string constant NEWFILE = "CoreV2_3.sol";
 
-contract upgrade_to_CoreV2_2 is Script {
+contract upgrade_to_CoreV2_3 is Script {
 
     function run(string memory chain) external {
         // LOAD ENV VARIABLES
