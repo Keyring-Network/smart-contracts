@@ -59,12 +59,12 @@ contract upgrade_to_CoreV2_3 is Script {
         Upgrades.validateUpgrade(NEWFILE, opts);
 
         // PERFORM UPGRADE
-        // Upgrades.upgradeProxy(
-            // proxy, 
-            // NEWFILE, 
-            // initdata,
-            // opts
-        // );
+        Upgrades.upgradeProxy(
+            proxy, 
+            NEWFILE, 
+            initdata,
+            opts
+        );
 
         vm.stopBroadcast();
     }
