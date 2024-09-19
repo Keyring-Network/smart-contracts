@@ -38,7 +38,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      * @notice Returns the address of the admin.
      * @return The address of the admin.
      */
-    function admin() external returns (address) {
+    function admin() external view returns (address) {
         return _admin;
     }
 
