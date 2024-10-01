@@ -5,6 +5,7 @@ out-test/
 out-uat/
 out-staging/
 out-prod/
+out-arbitrum/
 
 # Ignores development broadcast logs
 !/broadcast
@@ -20,3 +21,4 @@ docs/
 .env.uat
 .env.staging
 .env.prod
+.env.prod.arbitrum

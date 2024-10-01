@@ -30,6 +30,7 @@ contract upgrade_to_CoreV2_2 is Script {
         bytes32 STAGING = keccak256(abi.encodePacked("STAGING"));
         bytes32 UAT = keccak256(abi.encodePacked("UAT"));
         bytes32 PROD = keccak256(abi.encodePacked("PROD"));
+        bytes32 ARBITRUM = keccak256(abi.encodePacked("ARBITRUM"));
         bytes32 ENV = keccak256(abi.encodePacked(chain));
         // SETUP DEPLOYMENT VARIABLES
         address proxy = address(0);
@@ -42,6 +43,9 @@ contract upgrade_to_CoreV2_2 is Script {
             keyring = KEYRING_CREDENTIALS_UAT;
         } else if ( ENV == PROD ) {
             proxy = PROXY_PROD_MAINNET;
+            keyring = KEYRING_CREDENTIALS_PROD;
+        } else if ( ENV == ARBITRUM ) {
+            proxy = PROXY_PROD_ARBITRUM;
             keyring = KEYRING_CREDENTIALS_PROD;
         } else {
             console.log("Invalid ENV");

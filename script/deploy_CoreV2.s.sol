@@ -10,7 +10,7 @@ import {CoreV2} from "../src/CoreV2.sol";
 
 string constant NEWFILE = "CoreV2.sol";
 
-contract CoreV2_2 is Script {
+contract CoreV2Deploy is Script {
 
     function run() external {
         // LOAD ENV VARIABLES
