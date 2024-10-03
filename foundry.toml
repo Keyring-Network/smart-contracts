@@ -47,3 +47,13 @@ build_info = true
 extra_output = ["storageLayout"]
 out = "out-arbitrum"
 fs_permissions = [{ access = "read", path = "out-arbitrum" }]
+
+[profile.base]
+src = "src"
+libs = ["lib"]
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
+out = "out-base"
+fs_permissions = [{ access = "read", path = "out-base" }]
