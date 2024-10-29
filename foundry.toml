@@ -57,3 +57,13 @@ build_info = true
 extra_output = ["storageLayout"]
 out = "out-base"
 fs_permissions = [{ access = "read", path = "out-base" }]
+
+[profile.optimism]
+src = "src"
+libs = ["lib"]
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
+out = "out-base"
+fs_permissions = [{ access = "read", path = "out-optimism" }]
