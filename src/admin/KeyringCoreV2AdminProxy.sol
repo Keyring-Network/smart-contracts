@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
+import {KeyringCoreV2Base} from "../base/KeyringCoreV2Base.sol";
+
 /**
  * @title KeyringCoreV2AdminProxy
  * @dev This contract interacts with KeyringCoreV2Base and delegates admin functions to specific roles managed by KeyringAdminV2.
@@ -26,7 +28,7 @@ contract KeyringCoreV2AdminProxy {
     address public feeCollectorAdmin;
 
     // Blacklist managers
-    mapping(uint256 => mapping(address => bool) public blacklistManagers;
+    mapping(uint256 => mapping(address => bool)) public blacklistManagers;
 
     /**
      * @dev Initializes the contract with the core contract and master admin address.
@@ -63,19 +65,6 @@ contract KeyringCoreV2AdminProxy {
         }
         keyManagerAdmin = _admin;
         emit RoleAssigned("KeyManagerAdmin", _admin);
-    }
-
-    /**
-     * @notice Set the credential admin.
-     * @dev Only callable by the master admin.
-     * @param _admin Address of the new credential admin.
-     */
-    function setCredentialAdmin(address _admin) external {
-        if (msg.sender != masterAdmin) {
-          revert Unauthorized("MAS");
-      }
-        credentialAdmin = _admin;
-        emit RoleAssigned("CredentialAdmin", _admin);
     }
 
     /**
