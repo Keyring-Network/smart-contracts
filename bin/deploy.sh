@@ -78,7 +78,7 @@ addr=$(
     cast receipt --rpc-url $RPC_URL \
     $(
         cast bn --rpc-url $RPC_URL | \
-        cast bl --rpc-url $RPC_URL --full -j | \
+        cast bl --rpc-url $RPC_URL --full --json | \
         jq '.transactions[0].hash' | \
         sed 's/"//g'
     ) \
@@ -97,7 +97,7 @@ addr=$(
     cast receipt --rpc-url $RPC_URL \
     $(
         cast bn --rpc-url $RPC_URL | \
-        cast bl --rpc-url $RPC_URL --full -j | \
+        cast bl --rpc-url $RPC_URL --full --json | \
         jq '.transactions[0].hash' | \
         sed 's/"//g'
     ) \
