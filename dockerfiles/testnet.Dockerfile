@@ -1,6 +1,6 @@
 # This Dockerfile extends the core-v2:latest image to configure and run a local Anvil testnet node.
 
-FROM core-v2:latest
+FROM smart-contracts:latest
 
 ENV ANVIL_CHAIN=1337
 ENV ANVIL_PORT=8545

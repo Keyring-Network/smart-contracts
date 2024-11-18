@@ -2,7 +2,7 @@
 # See core-v2 repository README for more details.
 services:
   node:
-    image: core-v2:latest
+    image: smart-contracts:testnet
     ports:
       - "8545:8545"
     command: |
@@ -28,7 +28,7 @@ services:
       - contracts:/usr/src/app/out-test
 
   deploy-contracts:
-    image: core-v2:latest
+    image: smart-contracts:testnet
     depends_on:
       node:
         condition: service_healthy
