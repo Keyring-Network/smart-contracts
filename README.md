@@ -24,7 +24,8 @@ $ forge build
 ### Test
 
 ```shell
-$ forge test
+$ bin/develop.sh
+$ bin/tests.sh
 ```
 
 ### Format
