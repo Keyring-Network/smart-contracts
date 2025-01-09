@@ -15,6 +15,19 @@ https://book.getfoundry.sh/
 
 ## Usage
 
+### Install dependencies
+
+
+Local
+```shell
+$ forge install
+```
+
+Docker
+```shell
+$ bin/develop.sh
+```
+
 ### Build
 
 ```shell
@@ -23,8 +36,15 @@ $ forge build
 
 ### Test
 
+Local
 ```shell
-$ forge test
+$ export FOUNDRY_OUT="out-test" && forge clean && forge test -o $FOUNDRY_OUT
+```
+
+Docker
+```shell
+$ bin/develop.sh
+$ bin/tests.sh
 ```
 
 ### Format

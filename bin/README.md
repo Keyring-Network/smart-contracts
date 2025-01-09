@@ -1,4 +1,4 @@
-Scripts for building, deploying, and managing the `core-v2` project.
+Scripts for building, deploying, and managing the `smart-contracts` project.
 
 ## Table of Contents
 
@@ -33,7 +33,7 @@ bash bin/deploy.sh --rpc <RPC_URL> --chain <CHAIN_ID> --private-key <PRIVATE_KEY
 
 ### Build Docker Dev Environments (`develop.sh`)
 
-Builds Docker images for the `core-v2` project and sets up the development environment.
+Builds Docker images for the `smart-contracts` project and sets up the development environment.
 
 **Usage:**
 ```bash
@@ -58,7 +58,7 @@ bash bin/testnet-config.sh --host <HOST> --port <PORT> --chain <CHAIN_ID> --gene
 
 ### Build Env and Start Testnet in Docker (`testnet.sh`)
 
-Builds Docker images and starts a local testnet environment for the `core-v2` project.
+Builds Docker images and starts a local testnet environment for the `smart-contracts` project.
 
 **Usage:**
 ```bash
@@ -67,7 +67,7 @@ bash bin/testnet.sh
 
 ### Run Solidity Tests (`tests.sh`)
 
-Builds the `core-v2` Docker image and runs Solidity tests within a Docker container.
+Builds the `smart-contracts` Docker image and runs Solidity tests within a Docker container.
 
 **Usage:**
 ```bash
