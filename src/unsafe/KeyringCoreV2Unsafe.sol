@@ -3,7 +3,7 @@
 /*
 THIS CONTRACT IS FOR TESTING PURPOSES ONLY. DO NOT USE IN PRODUCTION.
 */
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "../base/KeyringCoreV2Base.sol";
 

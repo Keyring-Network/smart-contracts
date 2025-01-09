@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 interface Keyring {
     function checkCredential(uint256 policyId, address entity_) external view returns (bool);

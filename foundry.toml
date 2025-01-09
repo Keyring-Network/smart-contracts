@@ -65,5 +65,25 @@ ffi = true
 ast = true
 build_info = true
 extra_output = ["storageLayout"]
-out = "out-base"
+out = "out-optimism"
 fs_permissions = [{ access = "read", path = "out-optimism" }]
+
+[profile.avalanche]
+src = "src"
+libs = ["lib"]
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
+out = "out-avalanche"
+fs_permissions = [{ access = "read", path = "out-avalanche" }]
+
+[profile.zksync]
+src = "src"
+libs = ["lib"]
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
+out = "out-zksync"
+fs_permissions = [{ access = "read", path = "out-zksync" }]

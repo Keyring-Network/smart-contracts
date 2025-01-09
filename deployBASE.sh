@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+forge clean
 rm -f .env
 cp .env.prod.base .env
 source .env
