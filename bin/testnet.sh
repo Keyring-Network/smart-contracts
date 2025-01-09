@@ -7,8 +7,8 @@ set -euo pipefail
 
 ROOT="$(dirname "$(dirname "$(realpath "$0")")")"
 
-docker build -t core-v2:latest -f "$ROOT/dockerfiles/core-v2.Dockerfile" .
-docker build -t core-v2:testnet -f "$ROOT/dockerfiles/testnet.Dockerfile" .
+docker build -t smart-contracts:latest -f "$ROOT/dockerfiles/smart-contracts.Dockerfile" .
+docker build -t smart-contracts:testnet -f "$ROOT/dockerfiles/testnet.Dockerfile" .
 
 # Remove Docker container if it exists
 container_id=$(docker ps -a -q -f name=testnet)

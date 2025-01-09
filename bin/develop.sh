@@ -17,6 +17,6 @@ set -euo pipefail
 
 ROOT="$(dirname "$(dirname "$(realpath "$0")")")"
 
-docker build -t core-v2:base -f "$ROOT/dockerfiles/core-v2.base.Dockerfile" .
-docker build -t core-v2:latest -f "$ROOT/dockerfiles/core-v2.Dockerfile" .
-docker build -t core-v2:testnet -f "$ROOT/dockerfiles/testnet.Dockerfile" .
+docker build -t smart-contracts:base -f "$ROOT/dockerfiles/smart-contracts.base.Dockerfile" .
+docker build -t smart-contracts:latest -f "$ROOT/dockerfiles/smart-contracts.Dockerfile" .
+docker build -t smart-contracts:testnet -f "$ROOT/dockerfiles/testnet.Dockerfile" .

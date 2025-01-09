@@ -7,7 +7,7 @@ set -euo pipefail
 
 ROOT="$(dirname "$(dirname "$(realpath "$0")")")"
 
-docker build -t core-v2:latest -f "$ROOT/dockerfiles/core-v2.Dockerfile" .
+docker build -t smart-contracts:latest -f "$ROOT/dockerfiles/smart-contracts.Dockerfile" .
 
 # Remove Docker container if it exists
 container_id=$(docker ps -a -q -f name=solidity-tests)
@@ -15,4 +15,4 @@ if [ -n "$container_id" ]; then
     docker rm -f $container_id > /dev/null
 fi
 
-docker run --name solidity-tests core-v2:latest /bin/bash -c 'export FOUNDRY_OUT="out-test" && forge clean && forge test -o $FOUNDRY_OUT'
+docker run --name solidity-tests smart-contracts:latest /bin/bash -c 'export FOUNDRY_OUT="out-test" && forge clean && forge test -o $FOUNDRY_OUT'
