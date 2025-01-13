@@ -12,11 +12,12 @@ import {CoreV2_3} from "../src/CoreV2_3.sol";
 import {Tooling} from "./common/deployments.sol";
 
 string constant OLDFILE = "CoreV2_2.sol";
-string constant NEWFILE = "CoreV2_3.sol";
+string constant NEWFILE = "CoreV2_3_zksync.sol";
 
 contract upgrade_to_CoreV2_3 is Script, Tooling {
 
     function run(string memory chain) external {
+        require(false, "This script is disabled");
         (uint256 deployerPrivateKey, address deployerAddress) = loadPrivk();
         vm.startBroadcast(deployerPrivateKey);
         (address proxy, address keyring) = params(chain);

@@ -2,9 +2,9 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
-import "../src/lib/RsaVerifyOptimized.sol";
+import "../src/lib/RsaVerify.sol";
 
-contract RsaVerifyOptimizedTestRig is RsaVerifyOptimized {
+contract RsaVerifyTestRig is RsaVerify {
     function verify(
         address tradingAddress,
         uint256 policyId,
@@ -20,7 +20,7 @@ contract RsaVerifyOptimizedTestRig is RsaVerifyOptimized {
 }
 
 contract KeyringCoreV2UnsafeTest is Test {
-    RsaVerifyOptimizedTestRig internal keyring;
+    RsaVerifyTestRig internal keyring;
 
     // MUST BE IN ALPHABETICAL ORDER OR JSON WILL NOT PARSE!
     struct TestVector {
@@ -40,7 +40,7 @@ contract KeyringCoreV2UnsafeTest is Test {
     }
 
     function setUp() public {
-        keyring = new RsaVerifyOptimizedTestRig();
+        keyring = new RsaVerifyTestRig();
     }
 
     function testVerify() public {

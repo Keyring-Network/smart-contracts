@@ -9,6 +9,8 @@ out-arbitrum/
 out-base/
 out-optimism/
 out-avalanche/
+out-zksync/
+zkout/
 
 # Ignores development broadcast logs
 /broadcast/
