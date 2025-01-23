@@ -33,7 +33,7 @@ contract KeyringCoreV2UnsafeTest is Test {
 
     function testFullVerify() public {
         string memory root = vm.projectRoot();
-        string memory path = string.concat(root, "/test/rsa_vectors/test_vectors.json");
+        string memory path = string.concat(root, "/test/vectors/rsa_vector.json");
         string memory json = vm.readFile(path);
         bytes memory data = vm.parseJson(json);
         TestVectors memory testVectors = abi.decode(data, (TestVectors));

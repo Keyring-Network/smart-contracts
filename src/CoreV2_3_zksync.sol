@@ -6,7 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-import "./lib/RsaVerify.sol";
+import "./lib/EIP191Verify.sol";
 import "./base/KeyringCoreV2Base.sol";
 import {KeyringCoreV2Base} from "./base/KeyringCoreV2Base.sol";
 
@@ -14,7 +14,7 @@ import {KeyringCoreV2Base} from "./base/KeyringCoreV2Base.sol";
  * @title KeyringCoreV2 Contract
  * @dev This contract extends KeyringCoreV2Base and includes RSA verification logic.
  */
-contract CoreV2_3_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVerify, KeyringCoreV2Base {
+contract CoreV2_3_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable,  EIP191Verify, KeyringCoreV2Base {
     
 
     /// @custom:oz-upgrades-unsafe-allow constructor

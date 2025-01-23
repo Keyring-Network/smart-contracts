@@ -6,7 +6,7 @@ ast = true
 build_info = true
 extra_output = ["storageLayout"]
 out = "out-test"
-fs_permissions = [{ access = "read", path = "out-test" }, { access = "read", path = "test/rsa_vectors"}]
+fs_permissions = [{ access = "read", path = "out-test" }, { access = "read", path = "test/vectors"}]
 
 [profile.uat]
 src = "src"
