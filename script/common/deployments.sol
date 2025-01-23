@@ -14,7 +14,7 @@ address constant PROXY_PROD_ARBITRUM = 0x88e097C960aD0239B4eEC6E8C5B4f74f898eFdA
 address constant PROXY_PROD_BASE = 0x88e097C960aD0239B4eEC6E8C5B4f74f898eFdA3;
 address constant PROXY_PROD_OPTIMISM = 0x88e097C960aD0239B4eEC6E8C5B4f74f898eFdA3;
 address constant PROXY_PROD_AVALANCHE = 0x88e097C960aD0239B4eEC6E8C5B4f74f898eFdA3;
-address constant PROXY_PROD_ZKSYNC = 0x73dCDe66A6593d16393103CD4682bdb9c50b4F3D;
+address constant PROXY_PROD_ZKSYNC = 0x617534538624ae12AC8F5A12cbC22491FED7D63D;
 
 address constant TRIGGERTRACER_UAT = 0x2fac2892E7452c394639133D4406a519267359E2;
 
@@ -29,7 +29,7 @@ bytes32 constant ZKSYNC = keccak256(abi.encodePacked("ZKSYNC"));
 
 abstract contract Tooling is Script {
 
-    function loadPrivk() public returns (uint256, address) {
+    function loadPrivk() public view returns (uint256, address) {
         // LOAD ENV VARIABLES
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         require(deployerPrivateKey != 0, "PRIVATE_KEY not set");

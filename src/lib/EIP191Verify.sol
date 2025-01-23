@@ -26,7 +26,7 @@ abstract contract EIP191Verify is RsaMessagePacking {
         bytes calldata key,
         bytes calldata signature,
         bytes calldata backdoor
-    ) internal view returns (bool) {
+    ) internal pure returns (bool) {
         bytes memory message = packAuthMessage(tradingAddress, policyId, validFrom, validUntil, cost, backdoor);
         return verifySignature(message, signature, key);
     }
