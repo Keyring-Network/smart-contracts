@@ -3,10 +3,12 @@ pragma solidity ^0.8.20;
 
 import {Script, console} from "forge-std/Script.sol";
 
+// LEAVE THESE VALUES ALONE EVEN IF THEY DO NOT EXIST IN ALL ENVS. THEY MUCT BE PRESENT FOR THE SCRIPT TO WORK
 address constant KEYRING_CREDENTIALS_STAGING = 0xC29377e0B9b6297F3Ac60C6bd16F679FF600284d;
 address constant KEYRING_CREDENTIALS_UAT = 0xda53684332841eB49f58378171FaE15B04Cd019F;
 address constant KEYRING_CREDENTIALS_PROD = 0x8a16F136121FD53B5c72c3414b42299f972c9c67;
 
+// ANY NEW PROXY ADDRESS SHOULD BE ADDED HERE
 address constant PROXY_STAGING = 0x0b33fE66FF4Fa1B9784403c0b2315530735A6AEE;
 address constant PROXY_UAT = 0x6fB4880678bFf1792eBF1C3FDdc16E4fbF4ad043;
 address constant PROXY_PROD_MAINNET = 0xD18d17791f2071Bf3C855bA770420a9EdEa0728d;
@@ -16,8 +18,11 @@ address constant PROXY_PROD_OPTIMISM = 0x88e097C960aD0239B4eEC6E8C5B4f74f898eFdA
 address constant PROXY_PROD_AVALANCHE = 0x88e097C960aD0239B4eEC6E8C5B4f74f898eFdA3;
 address constant PROXY_PROD_ZKSYNC = 0x617534538624ae12AC8F5A12cbC22491FED7D63D;
 
+// THIS MAY BE IGNORED - IT WAS DEPLOYED FOR TESTING THE TRACER SYSTEM
 address constant TRIGGERTRACER_UAT = 0x2fac2892E7452c394639133D4406a519267359E2;
 
+// THIS MUST BE UPDATED FOR NEW ENVS TO INCLUDE THE NEW ENV NAME
+// THIS IS USED TO DETERMINE WHICH PROXY TO USE IN SCRIPTS
 bytes32 constant STAGING = keccak256(abi.encodePacked("STAGING"));
 bytes32 constant UAT = keccak256(abi.encodePacked("UAT"));
 bytes32 constant PROD = keccak256(abi.encodePacked("PROD"));
@@ -40,7 +45,7 @@ abstract contract Tooling is Script {
         return (deployerPrivateKey, deployerAddress);
     }
     
-
+    // THIS FUNCTION MUST BE UPDATED FOR NEW ENVS TO INCLUDE THE NEW ENV NAME
     function params(string memory chain) public view returns (address, address) {
         bytes32 ENV = keccak256(abi.encodePacked(chain));
         address proxy = address(0);
