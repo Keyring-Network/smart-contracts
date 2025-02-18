@@ -14,7 +14,7 @@ import {KeyringCoreV2Base} from "./base/KeyringCoreV2Base.sol";
  * @title KeyringCoreV2 Contract
  * @dev This contract extends KeyringCoreV2Base and includes RSA verification logic.
  */
-contract CoreV2_3_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable, EIP191Verify, KeyringCoreV2Base {
+contract CoreV2_4_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable, EIP191Verify, KeyringCoreV2Base {
     
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -37,7 +37,6 @@ contract CoreV2_3_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable, 
      * @dev This function overrides the base implementation to include RSA signature verification.
      * @param tradingAddress The trading address.
      * @param policyId The policy ID.
-     * @param validFrom The time from which a credential is valid.
      * @param validUntil The expiration time of the credential.
      * @param cost The cost of the credential.
      * @param key The RSA key.
