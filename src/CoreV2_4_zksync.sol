@@ -22,9 +22,7 @@ contract CoreV2_4_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable, 
         _disableInitializers();
     }
 
-    function initialize() onlyOwner reinitializer(3) public {
-        KeyringCoreV2Base._initialize();
-    }
+    function initialize() reinitializer(4) public {}
 
     function _authorizeUpgrade(address newImplementation)
         internal
@@ -57,12 +55,15 @@ contract CoreV2_4_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable, 
         if (!verifyAuthMessage(tradingAddress, policyId, chainId, validUntil, cost, key, signature, backdoor)) {
             revert ErrInvalidCredential(policyId, tradingAddress, "SIG");
         }
-        // NEW LOGIC FOR CHAIN ENFORCEMENT
-        if (cost > 0) {
-            if (chainId != block.chainid) {
-                revert ErrInvalidCredential(policyId, tradingAddress, "CID");
-            }
+        // Check for chainId mismatch
+        if (chainId != block.chainid) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "CID");
         }
+        // Check for insufficient cost
+        if (cost == 0 || msg.value < cost) {
+            revert ErrCostNotSufficient(policyId, tradingAddress, "COST");
+        }
+    
         // Call the base function to create the credential
         super._createCredential(tradingAddress, policyId, validUntil, cost, key, backdoor);
     }

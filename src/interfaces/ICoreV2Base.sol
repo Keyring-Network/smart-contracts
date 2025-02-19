@@ -55,6 +55,11 @@ interface ICoreV2Base {
     /// @param reason The reason for the invalid credential.
     error ErrInvalidCredential(uint256 policyId, address entity, string reason);
 
+    /// @notice Error for insufficient cost (calldata.cost is zero msg.value < cost).
+    /// @param policyId The ID of the policy.
+    /// @param entity The address of the entity.
+    /// @param reason The reason for the insufficient cost.
+    error ErrCostNotSufficient(uint256 policyId, address entity, string reason);
 
     /// @notice Event emitted when a key is registered.
     /// @param keyHash The hash of the key.
