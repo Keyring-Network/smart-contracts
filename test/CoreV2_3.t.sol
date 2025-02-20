@@ -61,7 +61,7 @@ contract CoreV2Test is Test, _testGenericUpgrade {
         // SETUP SECOND UPGRADE
         opts.referenceContract = OLDFILE;
         opts.constructorData = abi.encode();
-        initdata = abi.encodeWithSelector(CoreV2_3.initialize.selector);
+        initdata = abi.encodeWithSelector(CoreV2_3.initialize.selector, "");
 
         // VALIDATE UPGRADE
         Upgrades.validateUpgrade(NEWFILE, opts);

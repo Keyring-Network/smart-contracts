@@ -16,7 +16,7 @@ contract KeyringCoreV2UnsafeTest is Test {
     struct TestVector {
         bytes backdoor;
         uint256 cost;
-        uint256 createBefore;
+        uint256 chainId;
         bool expected;
         bytes key;
         uint256 policyId;
@@ -73,13 +73,13 @@ contract KeyringCoreV2UnsafeTest is Test {
             vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, address(this)));
             CoreV2_3(core).initialize();
 
-            keyring.registerKey(0, type(uint32).max, vector.key);
+            keyring.registerKey(block.chainid, type(uint32).max, vector.key);
 
             if (!vector.expected) vm.expectRevert();
             keyring.createCredential{value: vector.cost}(
                 vector.tradingAddress,
                 vector.policyId,
-                vector.createBefore,
+                vector.chainId,
                 vector.validUntil,
                 vector.cost,
                 vector.key,

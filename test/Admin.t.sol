@@ -26,6 +26,7 @@ contract KeyringCoreV2AdminProxyTest is Test {
     uint256 public policyId = 1;
 
     function setUp() public {
+        vm.chainId(1625247600);
         coreContract = new KeyringCoreV2Unsafe();
         adminProxy = new KeyringCoreV2AdminProxy(address(coreContract), masterAdmin);
         coreContract.setAdmin(address(adminProxy));
@@ -64,7 +65,7 @@ contract KeyringCoreV2AdminProxyTest is Test {
         vm.prank(masterAdmin);
         adminProxy.setKeyManagerAdmin(keyManagerAdmin);
         vm.prank(keyManagerAdmin);
-        adminProxy.registerKey(validFrom, validTo, rsaKey);
+        adminProxy.registerKey(block.chainid, validTo, rsaKey);
         vm.prank(keyManagerAdmin);
         bytes32 keyHash = keccak256(rsaKey);
         adminProxy.revokeKey(keyHash);

@@ -22,12 +22,12 @@ interface ICoreV2Base {
      * @notice Represents a key entry.
      * @dev Contains validity status and the validity period of the key.
      * @param isValid Indicates if the key is valid.
-     * @param validFrom The start time of the key's validity.
+     * @param chainId The chainId for which a credential is valid.
      * @param validTo The end time of the key's validity.
      */
     struct KeyEntry {
         bool isValid;
-        uint64 validFrom;
+        uint64 chainId;
         uint64 validTo;
     }
 
@@ -63,10 +63,10 @@ interface ICoreV2Base {
 
     /// @notice Event emitted when a key is registered.
     /// @param keyHash The hash of the key.
-    /// @param validFrom The start time of the key's validity.
+    /// @param chainId The chainId for which the key is valid.
     /// @param validTo The end time of the key's validity.
     /// @param publicKey The public key.
-    event KeyRegistered(bytes32 indexed keyHash, uint256 indexed validFrom, uint256 indexed validTo, bytes publicKey);
+    event KeyRegistered(bytes32 indexed keyHash, uint256 indexed chainId, uint256 indexed validTo, bytes publicKey);
 
     /// @notice Event emitted when a key is revoked.
     /// @param keyHash The hash of the key.

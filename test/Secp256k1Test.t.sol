@@ -8,14 +8,14 @@ contract EIP191VerifyTestRig is EIP191Verify {
     function verify(
         address tradingAddress,
         uint256 policyId,
-        uint256 createBefore,
+        uint256 chainId,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,
         bytes calldata signature,
         bytes calldata backdoor
     ) public view returns (bool) {
-        return verifyAuthMessage(tradingAddress, policyId, createBefore, validUntil, cost, key, signature, backdoor);
+        return verifyAuthMessage(tradingAddress, policyId, chainId, validUntil, cost, key, signature, backdoor);
     }
 }
 
@@ -26,7 +26,7 @@ contract KeyringCoreV2UnsafeTest is Test {
     struct TestVector {
         bytes backdoor;
         uint256 cost;
-        uint256 createBefore;
+        uint256 chainId;
         bool expected;
         bytes key;
         uint256 policyId;
@@ -58,7 +58,7 @@ contract KeyringCoreV2UnsafeTest is Test {
             bool result = keyring.verify(
                 vector.tradingAddress,
                 vector.policyId,
-                vector.createBefore,
+                vector.chainId,
                 vector.validUntil,
                 vector.cost,
                 key,

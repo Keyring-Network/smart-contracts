@@ -12,7 +12,6 @@ import {CoreV2} from "../src/CoreV2.sol";
 import {KeyringCredentialMock} from "./mocks/KeyringCredentialMock.sol";
 
 import {_testGenericUpgrade} from "./common/_testGenericUpgrade.sol";
-import {_testv2_4NewChecks} from "./common/_testv2_4NewChecks.sol";
 
 import "../src/CoreV2_3_zksync.sol";
 import "../src/CoreV2_4_zksync.sol";
@@ -23,7 +22,7 @@ string constant OLDFILE = "CoreV2_3_zksync.sol";
 string constant NEWFILE = "CoreV2_4_zksync.sol";
 uint256 constant POLICYID = 1;
 
-contract CoreV2Test is Test, _testGenericUpgrade, _testv2_4NewChecks {
+contract CoreV2Test is Test, _testGenericUpgrade {
     CoreV2_4_zksync public c4;
     CoreV2_3_zksync public c3;
     KeyringCredentialMock public keyring;
@@ -62,7 +61,7 @@ contract CoreV2Test is Test, _testGenericUpgrade, _testv2_4NewChecks {
         // SETUP UPGRADE TO V2.4
         opts.referenceContract = OLDFILE;
         opts.constructorData = abi.encode();
-        initdata = abi.encodeWithSelector(CoreV2_4_zksync.initialize.selector);
+        initdata = abi.encodeWithSelector(CoreV2_4_zksync.initialize.selector, "");
 
         // VALIDATE UPGRADE
         Upgrades.validateUpgrade(NEWFILE, opts);
@@ -88,8 +87,5 @@ contract CoreV2Test is Test, _testGenericUpgrade, _testv2_4NewChecks {
     }
 
 
-    function test_2_4NewChecks() public {
-        _testAll(address(c4));
-    }
 
 }

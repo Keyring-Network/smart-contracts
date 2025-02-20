@@ -21,8 +21,9 @@ contract CoreV2_3_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable, 
     constructor() {
         _disableInitializers();
     }
-    function initialize() reinitializer(3) public {}
-
+    function initialize() onlyOwner reinitializer(3) public {
+        KeyringCoreV2Base._initialize();
+    }
 
     function _authorizeUpgrade(address newImplementation)
         internal
@@ -35,7 +36,7 @@ contract CoreV2_3_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable, 
      * @dev This function overrides the base implementation to include RSA signature verification.
      * @param tradingAddress The trading address.
      * @param policyId The policy ID.
-     * @param validFrom The time from which a credential is valid.
+     * @param chainId The chainId for which a credential is valid.
      * @param validUntil The expiration time of the credential.
      * @param cost The cost of the credential.
      * @param key The RSA key.
@@ -45,7 +46,7 @@ contract CoreV2_3_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable, 
     function createCredential(
         address tradingAddress,
         uint256 policyId,
-        uint256 validFrom,
+        uint256 chainId,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,
@@ -53,7 +54,7 @@ contract CoreV2_3_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable, 
         bytes calldata backdoor
     ) public payable override {
         // Verify the authenticity of the message using RSA signature
-        if (!verifyAuthMessage(tradingAddress, policyId, validFrom, validUntil, cost, key, signature, backdoor)) {
+        if (!verifyAuthMessage(tradingAddress, policyId, chainId, validUntil, cost, key, signature, backdoor)) {
             revert ErrInvalidCredential(policyId, tradingAddress, "SIG");
         }
         // Call the base function to create the credential

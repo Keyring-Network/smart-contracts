@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../src/lib/RsaVerifyOptimized.sol";
 
 import "../src/CoreV2_3_zksync.sol";
+import "../src/CoreV2_4_zksync.sol";
 import "../src/CoreV2.sol";
 import "../src/CoreV2_2.sol";
 
@@ -15,7 +16,7 @@ contract KeyringCoreV2UnsafeTest is Test {
     struct TestVector {
         bytes backdoor;
         uint256 cost;
-        uint256 createBefore;
+        uint256 chainId;
         bool expected;
         bytes key;
         uint256 policyId;
@@ -54,11 +55,15 @@ contract KeyringCoreV2UnsafeTest is Test {
             core = address(new CoreV2_3_zksync());
             keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_3_zksync.initialize.selector));
 
+            // Upgrade to V2_4
+            core = address(new CoreV2_4_zksync());
+            keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_4_zksync.initialize.selector));
+
             // Attacker can not upgrade
             address attacker = makeAddr("attacker");
             vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, attacker));
             vm.prank(attacker);
-            keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_3_zksync.initialize.selector));
+            keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_4_zksync.initialize.selector));
 
             // Can not initialize twice
             vm.expectRevert(InvalidInitialization.selector);
@@ -66,16 +71,16 @@ contract KeyringCoreV2UnsafeTest is Test {
 
             // Can not initialize implementation
             vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, address(this)));
-            CoreV2_3_zksync(core).initialize();
+            CoreV2_4_zksync(core).initialize();
             bytes memory key = trimBytes(vector.key);
 
-            keyring.registerKey(0, type(uint32).max, key);
+            keyring.registerKey(block.chainid, type(uint32).max, key);
 
             if (!vector.expected) vm.expectRevert();
             keyring.createCredential{value: vector.cost}(
                 vector.tradingAddress,
                 vector.policyId,
-                vector.createBefore,
+                vector.chainId,
                 vector.validUntil,
                 vector.cost,
                 key,

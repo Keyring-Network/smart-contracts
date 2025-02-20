@@ -9,7 +9,7 @@ contract EIP191Verify is RsaMessagePacking {
      * @dev Verifies the authenticity of a message using RSA signature.
      * @param tradingAddress The trading address.
      * @param policyId The policy ID.
-     * @param validFrom The time from which a credential is valid.
+     * @param chainId The chainId for which a credential is valid.
      * @param validUntil The expiration time of the credential.
      * @param cost The cost of the credential.
      * @param key The RSA key.
@@ -20,14 +20,14 @@ contract EIP191Verify is RsaMessagePacking {
     function verifyAuthMessage(
         address tradingAddress,
         uint256 policyId,
-        uint256 validFrom,
+        uint256 chainId,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,
         bytes calldata signature,
         bytes calldata backdoor
-    ) internal pure returns (bool) {
-        bytes memory message = packAuthMessage(tradingAddress, policyId, validFrom, validUntil, cost, backdoor);
+    ) internal view returns (bool) {
+        bytes memory message = packAuthMessage(tradingAddress, policyId, chainId, validUntil, cost, backdoor);
         return verifySignature(message, signature, key);
     }
 

@@ -3,7 +3,6 @@ pragma solidity ^0.8.19;
 
 import "../lib/RsaMessagePacking.sol";
 import "../interfaces/ICoreV2Base.sol";
-
 /**
  * @title KeyringCoreV2 Contract
  * @dev This contract manages policy states, credentials, and whitelisting/blacklisting of entities.
@@ -60,13 +59,8 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
         return _keys[keyHash].isValid;
     }
 
-    /**
-     * @notice Returns the validity start time of a key.
-     * @param keyHash The hash of the key.
-     * @return The start time of the key's validity.
-     */
-    function keyValidFrom(bytes32 keyHash) external view returns (uint256) {
-        return _keys[keyHash].validFrom;
+    function keyChainId(bytes32 keyHash) external view returns (uint256) {
+        return block.chainid;
     }
 
     /**
@@ -157,7 +151,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      * @notice Creates a credential for an entity.
      * @param tradingAddress The trading address.
      * @param policyId The policy ID.
-     * @param validFrom The time from which a credential is valid.
+     * @param chainId The chainId for which a credential is valid.
      * @param validUntil The expiration time of the credential.
      * @param cost The cost of the credential.
      * @param key The RSA key.
@@ -167,7 +161,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
     function createCredential(
         address tradingAddress,
         uint256 policyId,
-        uint256 validFrom,
+        uint256 chainId,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,
@@ -194,17 +188,19 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
 
     /**
      * @notice Registers a new RSA key.
-     * @param validFrom The start time of the key's validity.
+     * @param chainId The chainId for which a credential is valid.
      * @param validTo The end time of the key's validity.
      * @param key The RSA key.
      * @dev Only callable by the admin.
      */
-    function registerKey(uint256 validFrom, uint256 validTo, bytes memory key) external {
+    function registerKey(uint256 chainId, uint256 validTo, bytes memory key) external {
         if (msg.sender != _admin) {
             revert ErrCallerNotAdmin(msg.sender);
         }
-        if (validTo <= validFrom) {
-            revert ErrInvalidKeyRegistration("IVP");
+        if (chainId != block.chainid) {
+            // convert chainId to string
+            //string memory chainIdStr = Strings.toString(block.chainid);
+            revert ErrInvalidKeyRegistration("CHAINID");
         }
         if (validTo < block.timestamp) {
             revert ErrInvalidKeyRegistration("EXP");
@@ -213,8 +209,8 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
         if (_keys[keyHash].isValid) {
             revert ErrInvalidKeyRegistration("KAR");
         }
-        _keys[keyHash] = KeyEntry(true, uint64(validFrom), uint64(validTo));
-        emit KeyRegistered(keyHash, validFrom, validTo, key);
+        _keys[keyHash] = KeyEntry(true, uint64(chainId), uint64(validTo));
+        emit KeyRegistered(keyHash, chainId, validTo, key);
     }
 
     /**
@@ -313,7 +309,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
         {
             bytes32 keyHash = getKeyHash(key);
             KeyEntry memory entry = _keys[keyHash];
-            bool isValid = (entry.isValid && currentTime >= entry.validFrom && currentTime <= entry.validTo);
+            bool isValid = (entry.isValid && block.chainid == entry.chainId && currentTime <= entry.validTo);
             // Verify the key is valid.
             if (!isValid) {
                 revert ErrInvalidCredential(policyId, tradingAddress, "BDK");

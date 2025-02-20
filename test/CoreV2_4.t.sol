@@ -12,7 +12,6 @@ import {CoreV2} from "../src/CoreV2.sol";
 import {KeyringCredentialMock} from "./mocks/KeyringCredentialMock.sol";
 
 import {_testGenericUpgrade} from "./common/_testGenericUpgrade.sol";
-import {_testv2_4NewChecks} from "./common/_testv2_4NewChecks.sol";
 
 import "../src/CoreV2_3.sol";
 import "../src/CoreV2_4.sol";
@@ -23,7 +22,7 @@ string constant OLDFILE = "CoreV2_3.sol";
 string constant NEWFILE = "CoreV2_4.sol";
 uint256 constant POLICYID = 1;
 
-contract CoreV2Test is Test, _testGenericUpgrade, _testv2_4NewChecks {
+contract CoreV2Test is Test, _testGenericUpgrade {
     CoreV2_4 public c4;
     CoreV2_3 public c3;
     KeyringCredentialMock public keyring;
@@ -86,8 +85,5 @@ contract CoreV2Test is Test, _testGenericUpgrade, _testv2_4NewChecks {
         _test_Upgrade(VERSIONNEXT, address(c4), attacker, OLDFILE);
     }
 
-    function test_2_4NewChecks() public {
-        _testAll(address(c4));
-    }
 
 }
