@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import "./RsaMessagePacking.sol";
 
-abstract contract EIP191Verify is RsaMessagePacking {
+contract EIP191Verify is RsaMessagePacking {
 
     /**
      * @dev Verifies the authenticity of a message using RSA signature.

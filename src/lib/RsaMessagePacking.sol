@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import "../interfaces/ICoreV2Base.sol";
 
-abstract contract RsaMessagePacking is ICoreV2Base {
+contract RsaMessagePacking is ICoreV2Base {
 
     /**
      * @dev Packing format of the message to be signed.

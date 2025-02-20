@@ -31,7 +31,7 @@ pragma solidity ^0.8.19;
 import "./RsaMessagePacking.sol";
 
 
-abstract contract RsaVerifyOptimized is RsaMessagePacking {
+contract RsaVerifyOptimized is RsaMessagePacking {
 
 
     uint256 constant sha256ExplicitNullParamByteLen = 17;
