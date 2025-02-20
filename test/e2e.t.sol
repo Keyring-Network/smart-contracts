@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../src/lib/RsaVerifyOptimized.sol";
 
 import "../src/CoreV2_3.sol";
+import "../src/CoreV2_4.sol";
 import "../src/CoreV2.sol";
 import "../src/CoreV2_2.sol";
 
@@ -54,11 +55,15 @@ contract KeyringCoreV2UnsafeTest is Test {
             core = address(new CoreV2_3());
             keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_3.initialize.selector));
 
+            // Upgrade to V2_4
+            core = address(new CoreV2_4());
+            keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_4.initialize.selector));
+
             // Attacker can not upgrade
             address attacker = makeAddr("attacker");
             vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, attacker));
             vm.prank(attacker);
-            keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_3.initialize.selector));
+            keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_4.initialize.selector));
 
             // Can not initialize twice
             vm.expectRevert(InvalidInitialization.selector);

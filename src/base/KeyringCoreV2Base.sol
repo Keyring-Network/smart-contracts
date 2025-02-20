@@ -26,7 +26,7 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
      */
     function _initialize() internal {
         if (_admin != address(0)) {
-            revert ErrAlreadyInitialized();
+            return;
         }
         _admin = msg.sender;
         emit AdminSet(address(0), msg.sender);

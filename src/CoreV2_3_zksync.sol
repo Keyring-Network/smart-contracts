@@ -21,10 +21,8 @@ contract CoreV2_3_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable, 
     constructor() {
         _disableInitializers();
     }
+    function initialize() reinitializer(3) public {}
 
-    function initialize() onlyOwner reinitializer(3) public {
-        KeyringCoreV2Base._initialize();
-    }
 
     function _authorizeUpgrade(address newImplementation)
         internal
