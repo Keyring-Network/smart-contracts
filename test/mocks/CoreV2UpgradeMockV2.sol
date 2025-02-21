@@ -18,7 +18,9 @@ contract CoreV2UpgradeMockV2 is Initializable, OwnableUpgradeable, UUPSUpgradeab
         _disableInitializers();
     }
 
-    function initialize() reinitializer(3) public {}
+    function initialize() reinitializer(3)  public {
+        __Ownable_init(owner());
+    }
 
     function _authorizeUpgrade(address newImplementation)
         internal

@@ -121,6 +121,8 @@ contract KeyringCoreV2UnsafeTest is Test {
         keyring.unblacklistEntity(1, nonAdmin);
     }
 
+
+
     function testCredentialCreationExpired() public {
         uint256 validFrom = block.timestamp;
         uint256 validTo = validFrom + 2 days;
@@ -131,6 +133,21 @@ contract KeyringCoreV2UnsafeTest is Test {
 
         vm.expectRevert(abi.encodeWithSelector(ICoreV2Base.ErrInvalidCredential.selector, 1, nonAdmin, "EXP"));
         keyring.createCredential{value: 1 ether}(nonAdmin, 1, block.chainid, validUntil, 1 ether, testKey, "", "");
+    }
+
+       // Credential Creation Tests
+    function testCreateCredentialWithWrongChainId() public {
+        uint256 validFrom = block.timestamp;
+        uint256 validTo = validFrom + 1 days;
+        keyring.registerKey(block.chainid, validTo, testKey);
+        uint256 createBefore = block.timestamp + 5 minutes;
+        uint256 validUntil = block.timestamp + 1 days;
+
+        
+        vm.expectRevert(abi.encodeWithSelector(ICoreV2Base.ErrInvalidCredential.selector, 1, nonAdmin, "CHAINID"));
+        keyring.createCredential{value: 1 ether}(nonAdmin, 1, 1234567890, validUntil, 1 ether, testKey, "", "");
+        
+
     }
 
     // Credential Creation Tests
@@ -154,14 +171,15 @@ contract KeyringCoreV2UnsafeTest is Test {
         emit log_named_uint("Gas for HOT COST credential without RSA validation:", gasBefore - gasAfter);
         validUntil = validUntil + 32 seconds;
 
-        gasBefore = gasleft();
-        keyring.createCredential(nonAdmin, 1, block.chainid, validUntil, 0, testKey, "", "");
-        gasAfter = gasleft();
-        emit log_named_uint("Gas for HOT NO-COST credential without RSA validation:", gasBefore - gasAfter);
-        gasBefore = gasleft();
-        keyring.checkCredential(1, nonAdmin);
-        gasAfter = gasleft();
-        emit log_named_uint("Gas for checkCredential:", gasBefore - gasAfter);
+        // This test is not valid anymore as we have a check for cost in the createCredential function
+        // gasBefore = gasleft();
+        // keyring.createCredential(nonAdmin, 1, block.chainid, validUntil, 0, testKey, "", "");
+        // gasAfter = gasleft();
+        // emit log_named_uint("Gas for HOT NO-COST credential without RSA validation:", gasBefore - gasAfter);
+        // gasBefore = gasleft();
+        // keyring.checkCredential(1, nonAdmin);
+        // gasAfter = gasleft();
+        // emit log_named_uint("Gas for checkCredential:", gasBefore - gasAfter);
     }
 
     function testCreateCredentialInsufficientPayment() public {

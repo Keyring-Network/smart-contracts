@@ -168,6 +168,10 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
         bytes calldata signature,
         bytes calldata backdoor
     ) external virtual payable {
+
+        if (chainId != block.chainid) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "CHAINID");
+        }
         _createCredential(tradingAddress, policyId, validUntil, cost, key, backdoor);
     }
 
@@ -304,6 +308,12 @@ abstract contract KeyringCoreV2Base is ICoreV2Base, RsaMessagePacking {
         if (msg.value != cost) {
             revert ErrInvalidCredential(policyId, tradingAddress, "VAL");
         }
+
+        // Check for insufficient cost
+        if (cost == 0) {
+            revert ErrCostNotSufficient(policyId, tradingAddress, "COST");
+        }
+   
         // Verify the key is valid.
         uint256 currentTime = block.timestamp;
         {

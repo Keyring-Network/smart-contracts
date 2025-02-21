@@ -18,7 +18,9 @@ contract CoreV2UpgradeGenericMock is Initializable, OwnableUpgradeable, UUPSUpgr
         _disableInitializers();
     }
 
-    function initialize() reinitializer(VERSION) public {}
+    function initialize() reinitializer(VERSION)  public {
+        __Ownable_init(owner());
+    }
 
     function _authorizeUpgrade(address newImplementation)
         internal

@@ -38,10 +38,6 @@ contract RsaMessagePacking is ICoreV2Base {
             revert ErrInvalidCredential(policyId, tradingAddress, "CHAINID");
         }
    
-        // Check for insufficient cost
-        if (cost == 0) {
-            revert ErrCostNotSufficient(policyId, tradingAddress, "COST");
-        }
         return abi.encodePacked(
             tradingAddress,
             uint8(0),
