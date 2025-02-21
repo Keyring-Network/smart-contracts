@@ -22,6 +22,7 @@ contract CoreV2_3_zksync is Initializable, OwnableUpgradeable, UUPSUpgradeable, 
         _disableInitializers();
     }
     function initialize() onlyOwner reinitializer(3) public {
+        __Ownable_init(owner());
         KeyringCoreV2Base._initialize();
     }
 

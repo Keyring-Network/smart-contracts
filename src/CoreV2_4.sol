@@ -23,6 +23,7 @@ contract CoreV2_4 is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVer
     }
 
     function initialize() onlyOwner reinitializer(4) public {
+        __Ownable_init(owner());
         KeyringCoreV2Base._initialize();
     }
 
