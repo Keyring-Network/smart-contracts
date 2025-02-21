@@ -23,6 +23,7 @@ contract CoreV2_3 is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVer
     }
 
     function initialize() onlyOwner reinitializer(3) public {
+        __Ownable_init(owner());
         KeyringCoreV2Base._initialize();
     }
 
@@ -37,7 +38,7 @@ contract CoreV2_3 is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVer
      * @dev This function overrides the base implementation to include RSA signature verification.
      * @param tradingAddress The trading address.
      * @param policyId The policy ID.
-     * @param validFrom The time from which a credential is valid.
+     * @param chainId The chainId for which a credential is valid.
      * @param validUntil The expiration time of the credential.
      * @param cost The cost of the credential.
      * @param key The RSA key.
@@ -47,7 +48,7 @@ contract CoreV2_3 is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVer
     function createCredential(
         address tradingAddress,
         uint256 policyId,
-        uint256 validFrom,
+        uint256 chainId,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,
@@ -55,7 +56,7 @@ contract CoreV2_3 is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVer
         bytes calldata backdoor
     ) public payable override {
         // Verify the authenticity of the message using RSA signature
-        if (!verifyAuthMessage(tradingAddress, policyId, validFrom, validUntil, cost, key, signature, backdoor)) {
+        if (!verifyAuthMessage(tradingAddress, policyId, chainId, validUntil, cost, key, signature, backdoor)) {
             revert ErrInvalidCredential(policyId, tradingAddress, "SIG");
         }
         // Call the base function to create the credential

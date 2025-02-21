@@ -13,18 +13,18 @@ import {KeyringCredentialMock} from "./mocks/KeyringCredentialMock.sol";
 
 import {_testGenericUpgrade} from "./common/_testGenericUpgrade.sol";
 
-import "../src/CoreV2_2.sol";
-import "../src/CoreV2_3.sol";
+import "../src/CoreV2_3_zksync.sol";
+import "../src/CoreV2_4_zksync.sol";
 
-uint64 constant VERSIONNEXT = 3;
+uint64 constant VERSIONNEXT = 4;
 string constant BASEFILE = "CoreV2.sol";
-string constant OLDFILE = "CoreV2_2.sol";
-string constant NEWFILE = "CoreV2_3.sol";
+string constant OLDFILE = "CoreV2_3_zksync.sol";
+string constant NEWFILE = "CoreV2_4_zksync.sol";
 uint256 constant POLICYID = 1;
 
 contract CoreV2Test is Test, _testGenericUpgrade {
-    CoreV2_3 public c3;
-    CoreV2_2 public c2;
+    CoreV2_4_zksync public c4;
+    CoreV2_3_zksync public c3;
     KeyringCredentialMock public keyring;
     address public owner;
     address constant attacker = address(0x1500);
@@ -40,10 +40,10 @@ contract CoreV2Test is Test, _testGenericUpgrade {
             opts
         );
 
-        // SETUP FIRST UPGRADE
+        // SETUP FIRST UPGRADE TO V2.3
         opts.referenceContract = BASEFILE;
         opts.constructorData = abi.encode(address(keyring));
-        bytes memory initdata = abi.encodeWithSelector(CoreV2_2.initialize.selector, "");
+        bytes memory initdata = abi.encodeWithSelector(CoreV2_3_zksync.initialize.selector, "");
 
         // VALIDATE UPGRADE
         Upgrades.validateUpgrade(OLDFILE, opts);
@@ -56,12 +56,12 @@ contract CoreV2Test is Test, _testGenericUpgrade {
             opts
         );
 
-        c2 = CoreV2_2(proxy);
+        c3 = CoreV2_3_zksync(proxy);
 
-        // SETUP SECOND UPGRADE
+        // SETUP UPGRADE TO V2.4
         opts.referenceContract = OLDFILE;
         opts.constructorData = abi.encode();
-        initdata = abi.encodeWithSelector(CoreV2_3.initialize.selector, "");
+        initdata = abi.encodeWithSelector(CoreV2_4_zksync.initialize.selector, "");
 
         // VALIDATE UPGRADE
         Upgrades.validateUpgrade(NEWFILE, opts);
@@ -74,16 +74,18 @@ contract CoreV2Test is Test, _testGenericUpgrade {
             opts
         );
 
-        c3 = CoreV2_3(proxy);
+        c4 = CoreV2_4_zksync(proxy);
     }
 
     function test_doubleInitialize() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        c3.initialize();
+        c4.initialize();
     }
 
     function test_Upgrade() public {
-        _test_Upgrade(VERSIONNEXT, address(c3), attacker, OLDFILE);
+        _test_Upgrade(VERSIONNEXT, address(c4), attacker, OLDFILE);
     }
+
+
 
 }

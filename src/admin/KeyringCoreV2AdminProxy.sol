@@ -122,15 +122,15 @@ contract KeyringCoreV2AdminProxy {
     /**
      * @notice Register a new RSA key.
      * @dev Only callable by the key manager admin.
-     * @param validFrom The start time of the key's validity.
+     * @param chainId The chainId for which the key is valid.
      * @param validTo The end time of the key's validity.
      * @param key The RSA key to register.
      */
-    function registerKey(uint256 validFrom, uint256 validTo, bytes memory key) external {
+    function registerKey(uint256 chainId, uint256 validTo, bytes memory key) external {
         if (msg.sender != keyManagerAdmin) {
             revert Unauthorized("KMN");
         }
-        coreContract.registerKey(validFrom, validTo, key);
+        coreContract.registerKey(chainId, validTo, key);
     }
 
     // Revoke an RSA key - only callable by key manager admin

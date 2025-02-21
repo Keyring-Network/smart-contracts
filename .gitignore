@@ -30,3 +30,7 @@ zkout/
 .env.prod.optimism
 .env.prod.avalanche
 .env.prod.zksync
+
+
+# MacOS
+.DS_Store

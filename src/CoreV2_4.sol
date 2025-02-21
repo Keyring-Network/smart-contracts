@@ -14,7 +14,7 @@ import {KeyringCoreV2Base} from "./base/KeyringCoreV2Base.sol";
  * @title KeyringCoreV2 Contract
  * @dev This contract extends KeyringCoreV2Base and includes RSA verification logic.
  */
-contract CoreV2_3 is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVerifyOptimized, KeyringCoreV2Base {
+contract CoreV2_4 is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVerifyOptimized, KeyringCoreV2Base {
     
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -22,7 +22,8 @@ contract CoreV2_3 is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVer
         _disableInitializers();
     }
 
-    function initialize() onlyOwner reinitializer(3) public {
+    function initialize() onlyOwner reinitializer(4) public {
+        __Ownable_init(owner());
         KeyringCoreV2Base._initialize();
     }
 
@@ -58,12 +59,12 @@ contract CoreV2_3 is Initializable, OwnableUpgradeable, UUPSUpgradeable,  RsaVer
         if (!verifyAuthMessage(tradingAddress, policyId, chainId, validUntil, cost, key, signature, backdoor)) {
             revert ErrInvalidCredential(policyId, tradingAddress, "SIG");
         }
-        // NEW LOGIC FOR CHAIN ENFORCEMENT
-        if (cost > 0) {
-            if (chainId != block.chainid) {
-                revert ErrInvalidCredential(policyId, tradingAddress, "CID");
-            }
+
+        // Test is performed before the call to the base function to avoid payable needed
+        if (cost == 0) {
+            revert ErrCostNotSufficient(policyId, tradingAddress, "COST");
         }
+       
         // Call the base function to create the credential
         super._createCredential(tradingAddress, policyId, validUntil, cost, key, backdoor);
     }

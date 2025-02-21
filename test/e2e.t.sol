@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../src/lib/RsaVerifyOptimized.sol";
 
 import "../src/CoreV2_3.sol";
+import "../src/CoreV2_4.sol";
 import "../src/CoreV2.sol";
 import "../src/CoreV2_2.sol";
 
@@ -14,8 +15,8 @@ contract KeyringCoreV2UnsafeTest is Test {
     // MUST BE IN ALPHABETICAL ORDER OR JSON WILL NOT PARSE!
     struct TestVector {
         bytes backdoor;
+        uint256 chainId;
         uint256 cost;
-        uint256 createBefore;
         bool expected;
         bytes key;
         uint256 policyId;
@@ -32,6 +33,7 @@ contract KeyringCoreV2UnsafeTest is Test {
     error InvalidInitialization();
 
     function testFullVerify() public {
+        vm.chainId(1625247600);
         string memory root = vm.projectRoot();
         string memory path = string.concat(root, "/test/vectors/rsa_vector.json");
         string memory json = vm.readFile(path);
@@ -54,11 +56,15 @@ contract KeyringCoreV2UnsafeTest is Test {
             core = address(new CoreV2_3());
             keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_3.initialize.selector));
 
+            // Upgrade to V2_4
+            core = address(new CoreV2_4());
+            keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_4.initialize.selector));
+
             // Attacker can not upgrade
             address attacker = makeAddr("attacker");
             vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, attacker));
             vm.prank(attacker);
-            keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_3.initialize.selector));
+            keyring.upgradeToAndCall(address(core), abi.encodeWithSelector(CoreV2_4.initialize.selector));
 
             // Can not initialize twice
             vm.expectRevert(InvalidInitialization.selector);
@@ -68,13 +74,13 @@ contract KeyringCoreV2UnsafeTest is Test {
             vm.expectRevert(abi.encodeWithSelector(OwnableUnauthorizedAccount.selector, address(this)));
             CoreV2_3(core).initialize();
 
-            keyring.registerKey(0, type(uint32).max, vector.key);
+            keyring.registerKey(block.chainid, type(uint32).max, vector.key);
 
             if (!vector.expected) vm.expectRevert();
             keyring.createCredential{value: vector.cost}(
                 vector.tradingAddress,
                 vector.policyId,
-                vector.createBefore,
+                vector.chainId,
                 vector.validUntil,
                 vector.cost,
                 vector.key,

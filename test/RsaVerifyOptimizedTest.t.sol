@@ -8,14 +8,14 @@ contract RsaVerifyOptimizedTestRig is RsaVerifyOptimized {
     function verify(
         address tradingAddress,
         uint256 policyId,
-        uint256 createBefore,
+        uint256 chainId,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,
         bytes calldata signature,
         bytes calldata backdoor
     ) public view returns (bool) {
-        return verifyAuthMessage(tradingAddress, policyId, createBefore, validUntil, cost, key, signature, backdoor);
+        return verifyAuthMessage(tradingAddress, policyId, chainId, validUntil, cost, key, signature, backdoor);
     }
 }
 
@@ -25,8 +25,8 @@ contract KeyringCoreV2UnsafeTest is Test {
     // MUST BE IN ALPHABETICAL ORDER OR JSON WILL NOT PARSE!
     struct TestVector {
         bytes backdoor;
+        uint256 chainId;
         uint256 cost;
-        uint256 createBefore;
         bool expected;
         bytes key;
         uint256 policyId;
@@ -40,6 +40,7 @@ contract KeyringCoreV2UnsafeTest is Test {
     }
 
     function setUp() public {
+        vm.chainId(1625247600);
         keyring = new RsaVerifyOptimizedTestRig();
     }
 
@@ -55,7 +56,7 @@ contract KeyringCoreV2UnsafeTest is Test {
             bool result = keyring.verify(
                 vector.tradingAddress,
                 vector.policyId,
-                vector.createBefore,
+                vector.chainId,
                 vector.validUntil,
                 vector.cost,
                 vector.key,
