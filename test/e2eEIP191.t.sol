@@ -15,8 +15,8 @@ contract KeyringCoreV2UnsafeTest is Test {
     // MUST BE IN ALPHABETICAL ORDER OR JSON WILL NOT PARSE!
     struct TestVector {
         bytes backdoor;
-        uint256 cost;
         uint256 chainId;
+        uint256 cost;
         bool expected;
         bytes key;
         uint256 policyId;
@@ -33,6 +33,7 @@ contract KeyringCoreV2UnsafeTest is Test {
     error InvalidInitialization();
 
     function testFullVerify() public {
+        vm.chainId(1625247600);
         string memory root = vm.projectRoot();
         string memory path = string.concat(root, "/test/vectors/secp256k1_vector.json");
         string memory json = vm.readFile(path);

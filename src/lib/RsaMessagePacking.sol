@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 import "../interfaces/ICoreV2Base.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract RsaMessagePacking is ICoreV2Base {
 
@@ -36,9 +35,7 @@ contract RsaMessagePacking is ICoreV2Base {
         
         // Check for chainId mismatch
         if (chainId != block.chainid) {
-            // convert chainId to string
-            string memory chainIdStr = Strings.toString(chainId);
-            revert ErrInvalidCredential(policyId, tradingAddress, chainIdStr);
+            revert ErrInvalidCredential(policyId, tradingAddress, "CHAINID");
         }
    
         // Check for insufficient cost

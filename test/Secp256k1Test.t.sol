@@ -25,8 +25,8 @@ contract KeyringCoreV2UnsafeTest is Test {
     // MUST BE IN ALPHABETICAL ORDER OR JSON WILL NOT PARSE!
     struct TestVector {
         bytes backdoor;
-        uint256 cost;
         uint256 chainId;
+        uint256 cost;
         bool expected;
         bytes key;
         uint256 policyId;
@@ -40,6 +40,7 @@ contract KeyringCoreV2UnsafeTest is Test {
     }
 
     function setUp() public {
+        vm.chainId(1625247600);
         keyring = new EIP191VerifyTestRig();
     }
 
@@ -55,6 +56,7 @@ contract KeyringCoreV2UnsafeTest is Test {
             // THIS NEXT LINE IS BECAUSE WE HAVE TO PAD THE KEY TO 21 BYTES OR THE JSON PARSER GET ANGRY
             // SO WE TRIM IT BACK TO 20 BYTES
             bytes memory key = trimBytes(vector.key);
+            console.log("fuckingChainId", vector.chainId);
             bool result = keyring.verify(
                 vector.tradingAddress,
                 vector.policyId,
