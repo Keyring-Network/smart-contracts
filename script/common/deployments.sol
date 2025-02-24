@@ -14,4 +14,18 @@ address constant PROXY_PROD_OPTIMISM = 0x88e097C960aD0239B4eEC6E8C5B4f74f898eFdA
 address constant PROXY_PROD_AVALANCHE = 0x88e097C960aD0239B4eEC6E8C5B4f74f898eFdA3;
 address constant PROXY_PROD_ZKSYNC = 0x73dCDe66A6593d16393103CD4682bdb9c50b4F3D;
 
+
+/*
+    ###################################################
+    ######## ADDRESS OF THE PROXY TO BE UPDATED ########
+    ####################################################
+*/
+    address constant PROXY_PROD_POLYGON = 0x0000000000000000000000000000000000000000;
+/*    
+    ####################################################
+    ######### ADDRESS OF THE PROXY TO BE UPDATED ########
+    ####################################################
+*/
+
+
 address constant TRIGGERTRACER_UAT = 0x2fac2892E7452c394639133D4406a519267359E2;

@@ -66,8 +66,6 @@ contract upgrade_to_CoreV2_3 is Script {
             console.log(chain);
             return;
         }
-        console.log("ENV: %s", chain);
-        console.log("PROXY: %s", proxy);
 
         Options memory opts;
 

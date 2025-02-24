@@ -72,10 +72,7 @@ contract upgrade_to_CoreV2_2 is Script {
             console.log(chain);
             return;
         }
-        console.log("ENV: %s", chain);
-        console.log("PROXY: %s", proxy);
-        console.log("KEYRING: %s", keyring);
-
+        
         Options memory opts;
 
         // SETUP UPGRADE
