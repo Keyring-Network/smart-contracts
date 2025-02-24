@@ -6,6 +6,7 @@ out-uat/
 out-staging/
 out-prod/
 out-arbitrum/
+out-polygon/
 out-base/
 out-optimism/
 out-avalanche/
@@ -24,6 +25,7 @@ out-avalanche/
 .env.staging
 .env.prod
 .env.prod.arbitrum
+.env.prod.polygon
 .env.prod.base
 .env.prod.optimism
 .env.prod.avalanche

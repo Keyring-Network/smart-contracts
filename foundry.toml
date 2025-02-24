@@ -78,6 +78,16 @@ extra_output = ["storageLayout"]
 out = "out-avalanche"
 fs_permissions = [{ access = "read", path = "out-avalanche" }]
 
+[profile.polygon]
+src = "src"
+libs = ["lib"]
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
+out = "out-polygon"
+fs_permissions = [{ access = "read", path = "out-polygon" }]
+
 [profile.zksync]
 src = "src"
 libs = ["lib"]
