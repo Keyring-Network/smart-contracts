@@ -1,10 +1,15 @@
 [profile.default]
 src = "src"
-libs = ["lib"]
-#ffi = true
-#ast = true
+libs = ["dependencies"] # <= This is important to be added
+ffi = true
+ast = true
 #build_info = true
-#extra_output = ["storageLayout"]
+extra_output = ["storageLayout"]
 out = "out"
 solc = "0.8.22"
-fs_permissions = [{ access = "read", path = "test/vectors"}]
+fs_permissions = [{ access = "read", path = "out" }, { access = "read-write", path = "addresses" }, { access = "read", path = "test/vectors" }]
+
+[dependencies]
+forge-std = { version = "1.9.6" }
+openzeppelin-foundry-upgrades = { version = "0.4.0" }
+openzeppelin-contracts-upgradeable = { version = "5.2.0" }

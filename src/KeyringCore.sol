@@ -24,8 +24,8 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
         _disableInitializers();
     }
 
-    function initialize(address _initialOwner, address _signatureChecker) public initializer {
-        __Ownable_init(_initialOwner);
+    function initialize(address _signatureChecker) public initializer {
+        __Ownable_init(msg.sender);
         __UUPSUpgradeable_init();
         if (_admin == address(0)) {
             _admin = msg.sender;
@@ -35,7 +35,7 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
     }
 
     function reinitialize() public onlyOwner reinitializer(4) {
-        initialize(owner(), address(signatureChecker));
+        initialize(address(signatureChecker));
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
