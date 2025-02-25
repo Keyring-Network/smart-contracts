@@ -5,8 +5,5 @@ import {Test, console} from "forge-std/Test.sol";
 import {KeyringCore} from "../src/KeyringCore.sol";
 
 contract KeyringCoreTest is Test {
-    
-    function setUp() public {
-    }
-
+    function setUp() public {}
 }

@@ -11,7 +11,6 @@ import {EIP191SignatureChecker} from "../src/messageVerifiers/EIP191SignatureChe
 import {AlwaysValidSignatureChecker} from "../src/messageVerifiers/AlwaysValidSignatureChecker.sol";
 
 contract Deploy is Script {
-
     using Strings for string;
 
     string constant ADDRESSES_DIR = "addresses/";
@@ -21,9 +20,9 @@ contract Deploy is Script {
         string memory networkName = vm.envString("NETWORK_NAME");
         string memory filePath = string.concat(ADDRESSES_DIR, networkName, ".txt");
 
-        if (!vm.exists(filePath)) {   
+        if (!vm.exists(filePath)) {
             console.log("No proxy address file found for network", networkName);
-            
+
             vm.startBroadcast(deployerPrivateKey);
 
             console.log("Deploying the Signature Checker", vm.envString("SIGNATURE_CHECKER_NAME"));
@@ -41,31 +40,25 @@ contract Deploy is Script {
 
             console.log("Deploying the KeyringCore contract proxy and implementation");
             address proxyAddress = Upgrades.deployUUPSProxy(
-                "KeyringCore.sol",
-                abi.encodeCall(KeyringCore.initialize, signatureCheckerAddress)
+                "KeyringCore.sol", abi.encodeCall(KeyringCore.initialize, signatureCheckerAddress)
             );
             vm.stopBroadcast();
             if (vm.isContext(VmSafe.ForgeContext.ScriptBroadcast)) {
                 console.log("Deployment is actually broadcasted, saving the proxy address to the file");
                 vm.writeFile(filePath, Strings.toHexString(uint256(uint160(proxyAddress)), 20));
             } else {
-                console.log("Deployment is not broadcasted, skipping the file saving (add --broadcast to the command to save the address)");
+                console.log(
+                    "Deployment is not broadcasted, skipping the file saving (add --broadcast to the command to save the address)"
+                );
             }
-            
         } else {
             console.log("Proxy address file found for network", networkName);
-            
+
             address proxyAddress = vm.parseAddress(vm.readFile(filePath));
             console.log("Upgrading the KeyringCore contract for the proxy at", proxyAddress);
             vm.startBroadcast(deployerPrivateKey);
-            Upgrades.upgradeProxy(
-                proxyAddress,
-                "KeyringCore.sol",
-                abi.encodeCall(KeyringCore.reinitialize, ())
-            );
+            Upgrades.upgradeProxy(proxyAddress, "KeyringCore.sol", abi.encodeCall(KeyringCore.reinitialize, ()));
             vm.stopBroadcast();
         }
-
     }
-
 }

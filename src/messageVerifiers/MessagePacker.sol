@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-
 contract MessagePacker {
     /**
      * @dev Packing format of the message to be signed.
