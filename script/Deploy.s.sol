@@ -5,7 +5,7 @@ import {Script, console, VmSafe} from "forge-std/Script.sol";
 import {KeyringCore} from "../src/KeyringCore.sol";
 import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {Options} from "openzeppelin-foundry-upgrades/Options.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Strings} from "@openzeppelin-contracts/utils/Strings.sol";
 import {RSASignatureChecker} from "../src/messageVerifiers/RSASignatureChecker.sol";
 import {EIP191SignatureChecker} from "../src/messageVerifiers/EIP191SignatureChecker.sol";
 import {AlwaysValidSignatureChecker} from "../src/messageVerifiers/AlwaysValidSignatureChecker.sol";
