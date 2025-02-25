@@ -16,3 +16,7 @@ out/
 
 # MacOS
 .DS_Store
+
+
+# Soldeer
+/dependencies
