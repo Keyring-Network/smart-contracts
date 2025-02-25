@@ -24,31 +24,26 @@ contract _testGenericUpgrade is Test {
         // SETUP UPGRADE
         Options memory opts;
         opts.referenceContract = oldfile_;
-        opts.constructorData = abi.encode(version+1);
+        opts.constructorData = abi.encode(version + 1);
         bytes memory initdata = abi.encodeWithSelector(CoreV2UpgradeGenericMock.initialize.selector, "");
-        
+
         // VALIDATE UPGRADE
         Upgrades.validateUpgrade(UPGRADEFILE, opts);
-        
+
         // ATTACKER SHOULD NOT BE ABLE TO UPGRADE
-        CoreV2UpgradeGenericMock impl = new CoreV2UpgradeGenericMock(version+1);
+        CoreV2UpgradeGenericMock impl = new CoreV2UpgradeGenericMock(version + 1);
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, attacker));
         vm.prank(attacker);
         IUpgradeable(c).upgradeToAndCall(address(impl), initdata);
-        
+
         // OWNER SHOULD BE ABLE TO UPGRADE
-        Upgrades.upgradeProxy(
-            c, 
-            UPGRADEFILE,
-            initdata,
-            opts
-        );
+        Upgrades.upgradeProxy(c, UPGRADEFILE, initdata, opts);
 
         // SHOULD NOT BE ABLE TO DOUBLE INITIALIZE AFTER UPGRADE
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         IUpgradeable(c).initialize();
 
         // CHECK THE VERSION AFTER UPGRADE
-        assertEq(IUpgradeable(c).VERSION(), version+1);
+        assertEq(IUpgradeable(c).VERSION(), version + 1);
     }
 }

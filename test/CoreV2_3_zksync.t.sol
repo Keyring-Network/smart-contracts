@@ -34,11 +34,7 @@ contract CoreV2Test is Test, _testGenericUpgrade {
         keyring = new KeyringCredentialMock();
         Options memory opts;
         opts.constructorData = abi.encode(address(keyring));
-        address proxy = Upgrades.deployUUPSProxy(
-            BASEFILE,
-            abi.encodeCall(CoreV2.initialize, owner),
-            opts
-        );
+        address proxy = Upgrades.deployUUPSProxy(BASEFILE, abi.encodeCall(CoreV2.initialize, owner), opts);
 
         // SETUP FIRST UPGRADE
         opts.referenceContract = BASEFILE;
@@ -49,12 +45,7 @@ contract CoreV2Test is Test, _testGenericUpgrade {
         Upgrades.validateUpgrade(OLDFILE, opts);
 
         // OWNER SHOULD BE ABLE TO UPGRADE
-        Upgrades.upgradeProxy(
-            proxy, 
-            OLDFILE, 
-            initdata,
-            opts
-        );
+        Upgrades.upgradeProxy(proxy, OLDFILE, initdata, opts);
 
         c2 = CoreV2_2(proxy);
 
@@ -67,12 +58,7 @@ contract CoreV2Test is Test, _testGenericUpgrade {
         Upgrades.validateUpgrade(NEWFILE, opts);
 
         // OWNER SHOULD BE ABLE TO UPGRADE
-        Upgrades.upgradeProxy(
-            proxy, 
-            NEWFILE, 
-            initdata,
-            opts
-        );
+        Upgrades.upgradeProxy(proxy, NEWFILE, initdata, opts);
 
         c3 = CoreV2_3_zksync(proxy);
     }
@@ -85,5 +71,4 @@ contract CoreV2Test is Test, _testGenericUpgrade {
     function test_Upgrade() public {
         _test_Upgrade(VERSIONNEXT, address(c3), attacker, OLDFILE);
     }
-
 }

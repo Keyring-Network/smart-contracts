@@ -31,11 +31,7 @@ contract CoreV2Test is Test, _testGenericUpgrade {
         keyring = new KeyringCredentialMock();
         Options memory opts;
         opts.constructorData = abi.encode(address(keyring));
-        address proxy = Upgrades.deployUUPSProxy(
-            OLDFILE,
-            abi.encodeCall(CoreV2.initialize, owner),
-            opts
-        );
+        address proxy = Upgrades.deployUUPSProxy(OLDFILE, abi.encodeCall(CoreV2.initialize, owner), opts);
 
         // SETUP UPGRADE
         opts.referenceContract = OLDFILE;
@@ -46,12 +42,7 @@ contract CoreV2Test is Test, _testGenericUpgrade {
         Upgrades.validateUpgrade(NEWFILE, opts);
 
         // OWNER SHOULD BE ABLE TO UPGRADE
-        Upgrades.upgradeProxy(
-            proxy, 
-            NEWFILE, 
-            initdata,
-            opts
-        );
+        Upgrades.upgradeProxy(proxy, NEWFILE, initdata, opts);
 
         c = CoreV2_2(proxy);
     }
@@ -70,6 +61,7 @@ contract CoreV2Test is Test, _testGenericUpgrade {
         assertEq(c.checkCredential(POLICYID, address(this)), false);
         assertEq(c.checkCredential(address(this), uint32(POLICYID)), false);
     }
+
     function test_PolicyOverflows() public {
         vm.expectRevert(CoreV2.PolicyOverflows.selector);
         c.checkCredential(type(uint256).max, address(this));
@@ -83,5 +75,4 @@ contract CoreV2Test is Test, _testGenericUpgrade {
     function test_Upgrade() public {
         _test_Upgrade(VERSIONNEXT, address(c), attacker, OLDFILE);
     }
-
 }

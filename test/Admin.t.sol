@@ -5,7 +5,6 @@ import "forge-std/Test.sol";
 import "../src/admin/KeyringCoreV2AdminProxy.sol";
 import {KeyringCoreV2Unsafe} from "../src/unsafe/KeyringCoreV2Unsafe.sol";
 
-
 contract KeyringCoreV2AdminProxyTest is Test {
     KeyringCoreV2AdminProxy public adminProxy;
     KeyringCoreV2Unsafe public coreContract;

@@ -35,7 +35,9 @@ contract KeyringCoreV2UnsafeTest is Test {
 
     function testSetAdminByNonAdmin() public {
         vm.prank(nonAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123)
+        );
         keyring.setAdmin(nonAdmin);
     }
 
@@ -51,7 +53,9 @@ contract KeyringCoreV2UnsafeTest is Test {
         uint256 validFrom = block.timestamp;
         uint256 validTo = validFrom + 1 days;
         vm.prank(nonAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123)
+        );
         keyring.registerKey(block.chainid, validTo, testKey);
     }
 
@@ -87,7 +91,9 @@ contract KeyringCoreV2UnsafeTest is Test {
         uint256 validTo = validFrom + 1 days;
         keyring.registerKey(block.chainid, validTo, testKey);
         vm.prank(nonAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123)
+        );
         keyring.revokeKey(testKeyHash);
     }
 
@@ -104,7 +110,9 @@ contract KeyringCoreV2UnsafeTest is Test {
 
     function testBlacklistEntityByNonAdmin() public {
         vm.prank(nonAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123)
+        );
         keyring.blacklistEntity(1, nonAdmin);
     }
 
@@ -117,11 +125,11 @@ contract KeyringCoreV2UnsafeTest is Test {
     function testUnblacklistEntityByNonAdmin() public {
         keyring.blacklistEntity(1, nonAdmin);
         vm.prank(nonAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123)
+        );
         keyring.unblacklistEntity(1, nonAdmin);
     }
-
-
 
     function testCredentialCreationExpired() public {
         uint256 validFrom = block.timestamp;
@@ -135,7 +143,7 @@ contract KeyringCoreV2UnsafeTest is Test {
         keyring.createCredential{value: 1 ether}(nonAdmin, 1, block.chainid, validUntil, 1 ether, testKey, "", "");
     }
 
-       // Credential Creation Tests
+    // Credential Creation Tests
     function testCreateCredentialWithWrongChainId() public {
         uint256 validFrom = block.timestamp;
         uint256 validTo = validFrom + 1 days;
@@ -143,11 +151,8 @@ contract KeyringCoreV2UnsafeTest is Test {
         uint256 createBefore = block.timestamp + 5 minutes;
         uint256 validUntil = block.timestamp + 1 days;
 
-        
         vm.expectRevert(abi.encodeWithSelector(ICoreV2Base.ErrInvalidCredential.selector, 1, nonAdmin, "CHAINID"));
         keyring.createCredential{value: 1 ether}(nonAdmin, 1, 1234567890, validUntil, 1 ether, testKey, "", "");
-        
-
     }
 
     // Credential Creation Tests
@@ -249,7 +254,9 @@ contract KeyringCoreV2UnsafeTest is Test {
 
     function testCollectFeesByNonAdmin() public {
         vm.prank(nonAdmin);
-        vm.expectRevert(abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123));
+        vm.expectRevert(
+            abi.encodeWithSelector(ICoreV2Base.ErrCallerNotAdmin.selector, 0x0000000000000000000000000000000000000123)
+        );
         keyring.collectFees(address(this));
     }
 
@@ -270,8 +277,6 @@ contract KeyringCoreV2UnsafeTest is Test {
         keyring.revokeKey(testKeyHash);
         assertFalse(keyring.keyExists(testKeyHash));
     }
-
-
 
     function testKeyValidTo() public {
         uint256 validFrom = block.timestamp;
@@ -300,7 +305,7 @@ contract KeyringCoreV2UnsafeTest is Test {
     function testEntityExp() public {
         uint256 validFrom = block.timestamp;
         uint256 validTo = validFrom + 1 days;
-            keyring.registerKey(block.chainid, validTo, testKey);
+        keyring.registerKey(block.chainid, validTo, testKey);
         uint256 createBefore = block.timestamp + 5 minutes;
         uint256 validUntil = block.timestamp + 1 days;
 

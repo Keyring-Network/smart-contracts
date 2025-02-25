@@ -6,11 +6,10 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../../src/ICredentialCache.sol";
 
-
 contract CoreV2UpgradeMockV2 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     bytes32 public constant TEST = keccak256("TEST");
     address public constant CREDENTIALCACHE = address(1);
-    
+
     error PolicyOverflows();
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -18,17 +17,13 @@ contract CoreV2UpgradeMockV2 is Initializable, OwnableUpgradeable, UUPSUpgradeab
         _disableInitializers();
     }
 
-    function initialize() reinitializer(3)  public {
+    function initialize() public reinitializer(3) {
         __Ownable_init(owner());
     }
 
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        onlyOwner
-        override
-    {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function checkCredential(uint256, address) public pure returns(bool) {
+    function checkCredential(uint256, address) public pure returns (bool) {
         return true;
     }
 }

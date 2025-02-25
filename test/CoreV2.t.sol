@@ -13,7 +13,6 @@ import {KeyringCredentialMock} from "./mocks/KeyringCredentialMock.sol";
 import {CoreV2UpgradeMock} from "./mocks/CoreV2UpgradeMock.sol";
 import {CoreV2UpgradeMockV2} from "./mocks/CoreV2UpgradeMockV2.sol";
 
-
 contract CoreV2Test is Test {
     CoreV2 public c;
     KeyringCredentialMock public keyring;
@@ -25,11 +24,7 @@ contract CoreV2Test is Test {
         keyring = new KeyringCredentialMock();
         Options memory opts;
         opts.constructorData = abi.encode(address(keyring));
-        address proxy = Upgrades.deployUUPSProxy(
-            "CoreV2.sol",
-            abi.encodeCall(CoreV2.initialize, owner),
-            opts
-        );
+        address proxy = Upgrades.deployUUPSProxy("CoreV2.sol", abi.encodeCall(CoreV2.initialize, owner), opts);
         c = CoreV2(proxy);
     }
 
@@ -61,23 +56,18 @@ contract CoreV2Test is Test {
         opts.referenceContract = "CoreV2.sol";
         opts.constructorData = abi.encode(address(keyring));
         bytes memory initdata = abi.encodeWithSelector(CoreV2UpgradeMock.initialize.selector, "");
-        
+
         // VALIDATE UPGRADE
         Upgrades.validateUpgrade("CoreV2UpgradeMock.sol", opts);
-        
+
         // ATTACKER SHOULD NOT BE ABLE TO UPGRADE
         CoreV2UpgradeMock impl = new CoreV2UpgradeMock(address(keyring));
         vm.expectRevert(abi.encodeWithSelector(OwnableUpgradeable.OwnableUnauthorizedAccount.selector, attacker));
         vm.prank(attacker);
         c.upgradeToAndCall(address(impl), initdata);
-        
+
         // OWNER SHOULD BE ABLE TO UPGRADE
-        Upgrades.upgradeProxy(
-            address(c), 
-            "CoreV2UpgradeMock.sol", 
-            initdata,
-            opts
-        );
+        Upgrades.upgradeProxy(address(c), "CoreV2UpgradeMock.sol", initdata, opts);
 
         // CHECK CREDENTIAL CHECKING STILL WORKS
         assertEq(c.checkCredential(1, address(this)), false);
@@ -88,8 +78,8 @@ contract CoreV2Test is Test {
         CoreV2UpgradeMock cc = CoreV2UpgradeMock(address(c));
 
         // CHECK NEW CONSTANT IS ACCESSIBLE
-        assertEq(cc.TEST(),keccak256("TEST"));
-        
+        assertEq(cc.TEST(), keccak256("TEST"));
+
         // SHOULD NOT BE ABLE TO DOUBLE INITIALIZE AFTER UPGRADE
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         cc.initialize();
@@ -100,7 +90,7 @@ contract CoreV2Test is Test {
 
         // SETUP RE-UPGRADE
         opts.referenceContract = "CoreV2UpgradeMock.sol";
-        
+
         // VALIDATE RE-UPGRADE
         Upgrades.validateUpgrade("CoreV2UpgradeMockV2.sol", opts);
 
@@ -111,12 +101,7 @@ contract CoreV2Test is Test {
         c.upgradeToAndCall(address(impl2), initdata);
 
         // OWNER SHOULD BE ABLE TO RE-UPGRADE
-        Upgrades.upgradeProxy(
-            address(c), 
-            "CoreV2UpgradeMockV2.sol", 
-            initdata,
-            opts
-        );
+        Upgrades.upgradeProxy(address(c), "CoreV2UpgradeMockV2.sol", initdata, opts);
 
         // CHECK CREDEINTIAL CACHE IS NEW VALUE
         assertEq(c.CREDENTIALCACHE(), address(1));
@@ -124,5 +109,4 @@ contract CoreV2Test is Test {
         // CHECK FORCED PASS WORKS
         assertEq(c.checkCredential(2, address(this)), true);
     }
-
 }

@@ -7,10 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "../../src/ICredentialCache.sol";
 import "../../src/interfaces/ICoreV2Base.sol";
 
-
-
 contract CoreV2UpgradeGenericMock is ICoreV2Base, Initializable, OwnableUpgradeable, UUPSUpgradeable {
-        
     /// @dev Address of the admin.
     address internal _admin;
 
@@ -29,14 +26,9 @@ contract CoreV2UpgradeGenericMock is ICoreV2Base, Initializable, OwnableUpgradea
         _disableInitializers();
     }
 
-    function initialize() reinitializer(VERSION)  public {
+    function initialize() public reinitializer(VERSION) {
         __Ownable_init(owner());
     }
 
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        onlyOwner
-        override
-    {}
-
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
