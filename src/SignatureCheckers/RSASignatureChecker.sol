@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 /*
     Copyright 2016, Adrià Massanet
@@ -28,9 +28,10 @@ pragma solidity 0.8.19;
     
  */
 
-import "./RsaMessagePacking.sol";
+import "../messagePackers/MessagePacker.sol";
+import "../interfaces/ISignatureChecker.sol";
 
-contract RsaVerifyOptimized is RsaMessagePacking {
+contract RSASignatureChecker is ISignatureChecker, MessagePacker {
     uint256 constant sha256ExplicitNullParamByteLen = 17;
     bytes32 constant sha256ExplicitNullParam = 0x3031300d06096086480165030402010500000000000000000000000000000000;
     bytes32 constant sha256ExplicitNullParamMask = 0xffffffffffffffffffffffffffffffffff000000000000000000000000000000;
@@ -50,28 +51,18 @@ contract RsaVerifyOptimized is RsaMessagePacking {
     }
 
     /**
-     * @dev Verifies the authenticity of a message using RSA signature.
-     * @param tradingAddress The trading address.
-     * @param policyId The policy ID.
-     * @param chainId The chainId for which a credential is valid.
-     * @param validUntil The expiration time of the credential.
-     * @param cost The cost of the credential.
-     * @param key The RSA key.
-     * @param signature The signature.
-     * @param backdoor The backdoor data.
-     * @return True if the verification is successful, false otherwise.
+     * @inheritdoc ISignatureChecker
      */
-    function verifyAuthMessage(
+    function checkSignature(
         address tradingAddress,
         uint256 policyId,
-        uint256 chainId,
         uint256 validUntil,
         uint256 cost,
         bytes calldata key,
         bytes calldata signature,
         bytes calldata backdoor
-    ) internal view returns (bool) {
-        bytes memory message = packAuthMessage(tradingAddress, policyId, chainId, validUntil, cost, backdoor);
+    ) external view returns (bool) {
+        bytes memory message = packMessage(tradingAddress, policyId, validUntil, cost, backdoor);
         bytes memory e = hex"03";
         return pkcs1Sha256Raw(message, signature, e, key);
     }

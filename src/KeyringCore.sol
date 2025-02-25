@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "./interfaces/ICredentialCache.sol";
 import "./interfaces/IKeyringCore.sol";
+import "./interfaces/ISignatureChecker.sol";
 
 contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpgradeable {
-    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    address public immutable CREDENTIALCACHE;
-
     /// @dev Address of the admin.
     address internal _admin;
 
@@ -20,45 +17,31 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
     /// @dev Mapping from policy ID and address to entity data.
     mapping(uint256 => mapping(address => EntityData)) internal _entityData;
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _credentialCache_) {
-        CREDENTIALCACHE = _credentialCache_;
+    /// @dev Signature checker.
+    ISignatureChecker public signatureChecker;
+
+    constructor() {
         _disableInitializers();
     }
 
-    function initialize(address _initialOwner) public initializer {
+    function initialize(address _initialOwner, address _signatureChecker) public initializer {
         __Ownable_init(_initialOwner);
         __UUPSUpgradeable_init();
         if (_admin == address(0)) {
             _admin = msg.sender;
             emit AdminSet(address(0), msg.sender);
         }
+        signatureChecker = ISignatureChecker(_signatureChecker);
     }
 
     function reinitialize() public onlyOwner reinitializer(4) {
-        initialize(owner());
+        initialize(owner(), address(signatureChecker));
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    function checkCredential(uint256 policyId_, address entity_) public view returns (bool) {
-        if (policyId_ > type(uint32).max) {
-            revert PolicyOverflows();
-        }
-        return ICredentialCache(CREDENTIALCACHE).checkCredential(entity_, uint32(policyId_));
-    }
-
     /**
-     * @notice Creates a credential for an entity.
-     * @dev This function overrides the base implementation to include RSA signature verification.
-     * @param tradingAddress The trading address.
-     * @param policyId The policy ID.
-     * @param chainId The chainId for which a credential is valid.
-     * @param validUntil The expiration time of the credential.
-     * @param cost The cost of the credential.
-     * @param key The RSA key.
-     * @param signature The signature.
-     * @param backdoor The backdoor data.
+     * @inheritdoc IKeyringCore
      */
     function createCredential(
         address tradingAddress,
@@ -70,18 +53,65 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
         bytes calldata signature,
         bytes calldata backdoor
     ) public payable override {
-        // Verify the authenticity of the message using RSA signature
-        if (!verifyAuthMessage(tradingAddress, policyId, chainId, validUntil, cost, key, signature, backdoor)) {
-            revert ErrInvalidCredential(policyId, tradingAddress, "SIG");
+        // Verify the cost of the credential creation matches the value sent.
+        if (msg.value != cost) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "VAL");
         }
-
-        // Test is performed before the call to the base function to avoid payable needed
+        // Check for insufficient cost
         if (cost == 0) {
             revert ErrCostNotSufficient(policyId, tradingAddress, "COST");
         }
+        // Check for policy ID overflow
+        if (policyId > type(uint24).max) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "PID");
+        }
+        // Check for validUntil overflow
+        if (validUntil > type(uint32).max) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "BVU");
+        }
+        // Check for cost overflow
+        if (cost > type(uint128).max) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "CST");
+        }
+        // Check for chainId mismatch
+        if (chainId != block.chainid) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "CHAINID");
+        }
+        // Verify the message
+        if (!signatureChecker.checkSignature(tradingAddress, policyId, validUntil, cost, key, signature, backdoor)) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "SIG");
+        }
 
-        // Call the base function to create the credential
-        super._createCredential(tradingAddress, policyId, validUntil, cost, key, backdoor);
+        uint256 currentTime = block.timestamp;
+        {
+            bytes32 keyHash = getKeyHash(key);
+            KeyEntry memory entry = _keys[keyHash];
+            bool isValid = (entry.isValid && block.chainid == entry.chainId && currentTime <= entry.validTo);
+            // Verify the key is valid.
+            if (!isValid) {
+                revert ErrInvalidCredential(policyId, tradingAddress, "BDK");
+            }
+        }
+        // Calculate the expiration for the credential.
+        if (validUntil < currentTime) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "EXP");
+        }
+        // Load the entity data.
+        EntityData memory ed = _entityData[policyId][tradingAddress];
+        // Check if the entity is blacklisted.
+        if (ed.blacklisted) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "BLK");
+        }
+        if (validUntil <= ed.exp) {
+            revert ErrInvalidCredential(policyId, tradingAddress, "STL");
+        }
+        // Set the expiration for the entity.
+        ed.exp = uint64(validUntil);
+
+        // Update the entity data.
+        _entityData[policyId][tradingAddress] = ed;
+        // Emit the credential created event.
+        emit CredentialCreated(policyId, tradingAddress, validUntil, backdoor);
     }
 
     /**
@@ -110,7 +140,7 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
         return _keys[keyHash].isValid;
     }
 
-    function keyChainId(bytes32 keyHash) external view returns (uint256) {
+    function keyChainId(bytes32) external view returns (uint256) {
         return block.chainid;
     }
 
@@ -197,34 +227,6 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
         return checkCredential(policyId, entity_);
     }
 
-    // CREDENTIAL CREATION
-    /**
-     * @notice Creates a credential for an entity.
-     * @param tradingAddress The trading address.
-     * @param policyId The policy ID.
-     * @param chainId The chainId for which a credential is valid.
-     * @param validUntil The expiration time of the credential.
-     * @param cost The cost of the credential.
-     * @param key The RSA key.
-     * @param signature The signature.
-     * @param backdoor The backdoor data.
-     */
-    function createCredential(
-        address tradingAddress,
-        uint256 policyId,
-        uint256 chainId,
-        uint256 validUntil,
-        uint256 cost,
-        bytes calldata key,
-        bytes calldata signature,
-        bytes calldata backdoor
-    ) external payable virtual {
-        if (chainId != block.chainid) {
-            revert ErrInvalidCredential(policyId, tradingAddress, "CHAINID");
-        }
-        _createCredential(tradingAddress, policyId, validUntil, cost, key, backdoor);
-    }
-
     // ADMIN CAPABILITIES
 
     /**
@@ -252,8 +254,6 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
             revert ErrCallerNotAdmin(msg.sender);
         }
         if (chainId != block.chainid) {
-            // convert chainId to string
-            //string memory chainIdStr = Strings.toString(block.chainid);
             revert ErrInvalidKeyRegistration("CHAINID");
         }
         if (validTo < block.timestamp) {
@@ -333,67 +333,6 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
             revert ErrCallerNotAdmin(msg.sender);
         }
         sendValue(payable(to), address(this).balance);
-    }
-
-    // INTERNAL FUNCTIONS
-
-    /**
-     * @notice Internal function that creates a credential for an entity.
-     * @param tradingAddress The trading address.
-     * @param policyId The policy ID.
-     * @param validUntil The expiration time of the credential.
-     * @param cost The cost of the credential.
-     * @param key The RSA key.
-     * @param backdoor The backdoor data.
-     */
-    function _createCredential(
-        address tradingAddress,
-        uint256 policyId,
-        uint256 validUntil,
-        uint256 cost,
-        bytes calldata key,
-        bytes calldata backdoor
-    ) internal {
-        // Verify the cost of the credential creation matches the value sent.
-        if (msg.value != cost) {
-            revert ErrInvalidCredential(policyId, tradingAddress, "VAL");
-        }
-
-        // Check for insufficient cost
-        if (cost == 0) {
-            revert ErrCostNotSufficient(policyId, tradingAddress, "COST");
-        }
-
-        // Verify the key is valid.
-        uint256 currentTime = block.timestamp;
-        {
-            bytes32 keyHash = getKeyHash(key);
-            KeyEntry memory entry = _keys[keyHash];
-            bool isValid = (entry.isValid && block.chainid == entry.chainId && currentTime <= entry.validTo);
-            // Verify the key is valid.
-            if (!isValid) {
-                revert ErrInvalidCredential(policyId, tradingAddress, "BDK");
-            }
-        }
-        // Calculate the expiration for the credential.
-        if (validUntil < currentTime) {
-            revert ErrInvalidCredential(policyId, tradingAddress, "EXP");
-        }
-        // Load the entity data.
-        EntityData memory ed = _entityData[policyId][tradingAddress];
-        // Check if the entity is blacklisted.
-        if (ed.blacklisted) {
-            revert ErrInvalidCredential(policyId, tradingAddress, "BLK");
-        }
-        if (validUntil <= ed.exp) {
-            revert ErrInvalidCredential(policyId, tradingAddress, "STL");
-        }
-        // Set the expiration for the entity.
-        ed.exp = uint64(validUntil);
-        _entityData[policyId][tradingAddress] = ed;
-        // Update the entity data.
-        // Emit the credential created event.
-        emit CredentialCreated(policyId, tradingAddress, validUntil, backdoor);
     }
 
     /**

@@ -61,7 +61,6 @@ interface IKeyringCore {
     error ErrCostNotSufficient(uint256 policyId, address entity, string reason);
 
     /// @notice Error for policy overflows.
-    /// @param policyId The ID of the policy.
     error PolicyOverflows();
 
     /// @notice Event emitted when a key is registered.
