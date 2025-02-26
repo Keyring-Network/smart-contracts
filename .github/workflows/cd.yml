@@ -1,15 +1,24 @@
-name: CI
+name: CD
 
 on:
-  pull_request:
-  push:
-    branches:
-      - master
-    tags:
-      - "*"
-
-env:
-  FOUNDRY_PROFILE: ci
+  workflow_dispatch:
+    inputs:
+      rpc-url:
+        description: "The RPC URL for the net"
+        required: true
+      private-key:
+        description: "The private key for the deployer account"
+        required: true
+      chain-id:
+        description: "The Chain ID for the network"
+        required: true
+      etherscan-api-key:
+        description: "API key for etherscan"
+        required: true
+      project_dir:
+        description: "The directory containing the Foundry project (defaults to the root directory if not provided)."
+        required: false
+        default: "."
 
 jobs:
   check:
