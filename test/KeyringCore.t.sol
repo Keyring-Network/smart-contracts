@@ -7,8 +7,7 @@ import {KeyringCore} from "../src/KeyringCore.sol";
 contract KeyringCoreTest is Test {
     function setUp() public {}
 
-    function test_it_works() pure public {
+    function test_it_works() public pure {
         assertTrue(true);
     }
 }
-
