@@ -13,12 +13,12 @@ import {AlwaysValidSignatureChecker} from "../src/messageVerifiers/AlwaysValidSi
 contract Deploy is Script {
     using Strings for string;
 
-    string constant ADDRESSES_DIR = "addresses/";
+    string constant NETWORKS_DIR = "networks/";
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         string memory networkName = vm.envString("NETWORK_NAME");
-        string memory filePath = string.concat(ADDRESSES_DIR, networkName, ".txt");
+        string memory filePath = string.concat(NETWORKS_DIR, networkName, ".txt");
 
         if (!vm.exists(filePath)) {
             console.log("No proxy address file found for network", networkName);
