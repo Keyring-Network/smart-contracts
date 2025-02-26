@@ -1,0 +1,24 @@
+name: Deploy Contracts
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        type: choice
+        options:
+          - testnet
+          - mainnet
+          - "New network"
+    # No branch filters here means it can be triggered from any branch
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      networks: ${{ steps.get-networks.outputs.networks }}
