@@ -55,7 +55,7 @@ _w/o Etherscan verification:_
 forge script script/Deploy.s.sol \
             --force \
             --broadcast \
-            --rpc-url ${{ env.RPC_URL }} \
+            --rpc-url ${{ env.RPC_URL }}
 ```
 
 _w/ Etherscan verification:_
