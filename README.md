@@ -2,6 +2,8 @@
 
 [![Tests](https://github.com/keyring-network/smart-contracts/actions/workflows/ci.yml/badge.svg)](https://github.com/keyring-network/smart-contracts/actions/workflows/test.yml)
 
+(https://img.shields.io/github/tag/pandao/editor.md.svg) ![]
+
 Smart contracts for [Keyring Network](https://www.keyring.network/), a platform providing institutional-grade compliance automation and permissioning solutions for blockchain protocols powered by zero-knowledge privacy.
 
 ## Prerequisites
@@ -13,7 +15,7 @@ Smart contracts for [Keyring Network](https://www.keyring.network/), a platform 
 1. Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone git@github.com:Keyring-Network/keyring-smart-contracts.git
 cd smart-contracts
 ```
 
@@ -49,7 +51,7 @@ cp .env.example .env
 
 2. Run the deployment script
 
-**w/o Etherscan verification:**
+_w/o Etherscan verification:_
 
 ```bash
 forge script script/Deploy.s.sol \
@@ -58,7 +60,7 @@ forge script script/Deploy.s.sol \
             --rpc-url ${{ env.RPC_URL }} \
 ```
 
-**w/ Etherscan verification:**
+_w/ Etherscan verification:_
 
 ```bash
 forge script script/Deploy.s.sol \
