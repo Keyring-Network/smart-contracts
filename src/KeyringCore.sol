@@ -6,8 +6,8 @@ import "@openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/IKeyringCore.sol";
 import "./interfaces/ISignatureChecker.sol";
+import "./mocks/KeyringCoreFormerVersion.sol";
 
-/// @custom:oz-upgrades-unsafe-allow
 contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpgradeable {
     /// @dev Address of the admin.
     address internal _admin;
@@ -32,6 +32,9 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
         if (_admin == address(0)) {
             _admin = msg.sender;
             emit AdminSet(address(0), msg.sender);
+        }
+        if (_signatureChecker == address(0)) {
+            revert ErrInvalidSignatureChecker();
         }
         signatureChecker = ISignatureChecker(_signatureChecker);
     }
@@ -349,5 +352,4 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
             revert ErrFailedSendOfValue();
         }
     }
-
 }

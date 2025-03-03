@@ -7,31 +7,28 @@ import {KeyringCoreBaseTest} from "./KeyringCoreBase.t.sol";
 import {AlwaysValidSignatureChecker} from "../../src/messageVerifiers/AlwaysValidSignatureChecker.sol";
 
 contract KeyringCoreAdminFeaturesTest is KeyringCoreBaseTest {
-
     address public feeRecipient = address(0x3);
     address public blacklistedEntity = address(0x4);
     bytes public key = "0x1234";
     uint256 public validTo = 2000;
     uint256 public policyId = 1;
 
-
     function testSetAdmin() public {
         console.log(address(this));
         address newAdmin = address(0xdead);
         keyringCore.setAdmin(newAdmin);
         assertEq(keyringCore.admin(), newAdmin);
-        
+
         vm.prank(newAdmin);
         keyringCore.setAdmin(admin);
         assertEq(keyringCore.admin(), admin);
     }
 
-
     function testRegisterAndRevokeKey() public {
         keyringCore.registerKey(block.chainid, validTo, key);
         bytes32 keyHash = keccak256(key);
         assertTrue(keyringCore.keyExists(keyHash));
-        
+
         keyringCore.revokeKey(keyHash);
         assertFalse(keyringCore.keyExists(keyHash));
     }
@@ -39,7 +36,7 @@ contract KeyringCoreAdminFeaturesTest is KeyringCoreBaseTest {
     function testBlacklistAndUnblacklistEntity() public {
         keyringCore.blacklistEntity(policyId, blacklistedEntity);
         assertTrue(keyringCore.entityBlacklisted(policyId, blacklistedEntity));
-        
+
         keyringCore.unblacklistEntity(policyId, blacklistedEntity);
         assertFalse(keyringCore.entityBlacklisted(policyId, blacklistedEntity));
     }
@@ -47,7 +44,7 @@ contract KeyringCoreAdminFeaturesTest is KeyringCoreBaseTest {
     function testCollectFees() public {
         // Send some ETH to the contract
         vm.deal(address(keyringCore), 1 ether);
-        
+
         // Collect fees
         keyringCore.collectFees(feeRecipient);
         assertEq(feeRecipient.balance, 1 ether);
@@ -66,7 +63,7 @@ contract KeyringCoreAdminFeaturesTest is KeyringCoreBaseTest {
     function testFailRevokeKeyFromNonAdmin() public {
         keyringCore.registerKey(block.chainid, validTo, key);
         bytes32 keyHash = keccak256(key);
-        
+
         vm.prank(nonAdmin);
         keyringCore.revokeKey(keyHash);
     }
@@ -78,16 +75,15 @@ contract KeyringCoreAdminFeaturesTest is KeyringCoreBaseTest {
 
     function testFailUnblacklistEntityFromNonAdmin() public {
         keyringCore.blacklistEntity(policyId, blacklistedEntity);
-        
+
         vm.prank(nonAdmin);
         keyringCore.unblacklistEntity(policyId, blacklistedEntity);
     }
 
     function testFailCollectFeesFromNonAdmin() public {
         vm.deal(address(keyringCore), 1 ether);
-        
+
         vm.prank(nonAdmin);
         keyringCore.collectFees(feeRecipient);
     }
-
-} 
+}

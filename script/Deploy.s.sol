@@ -15,28 +15,25 @@ contract Deploy is Script {
 
     function run() external returns (KeyringCore) {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        string memory proxyAddressStr;
-        try vm.envString("PROXY_ADDRESS") returns (string memory addr) {
-            proxyAddressStr = addr;
-        } catch {
-            proxyAddressStr = "";
-        }
+        string memory emptyString = "";
+
+        string memory proxyAddressStr = vm.envOr("PROXY_ADDRESS", emptyString);
         address proxyAddress = bytes(proxyAddressStr).length > 0 ? vm.parseAddress(proxyAddressStr) : address(0);
 
         if (proxyAddress == address(0)) {
+            string memory signatureCheckerName = vm.envString("SIGNATURE_CHECKER_NAME");
+            console.log("Deploying the Signature Checker", signatureCheckerName);
+            address signatureCheckerAddress;
             vm.startBroadcast(deployerPrivateKey);
 
-            console.log("Deploying the Signature Checker", vm.envString("SIGNATURE_CHECKER_NAME"));
-            address signatureCheckerAddress;
-            string memory signatureCheckerName = vm.envString("SIGNATURE_CHECKER_NAME");
             if (signatureCheckerName.equal("RSASignatureChecker")) {
                 signatureCheckerAddress = address(new RSASignatureChecker());
-            } else if (signatureCheckerName.equal("EIP191SignatureChecker")) {
-                signatureCheckerAddress = address(new EIP191SignatureChecker());
             } else if (signatureCheckerName.equal("AlwaysValidSignatureChecker")) {
                 signatureCheckerAddress = address(new AlwaysValidSignatureChecker());
+            } else if (signatureCheckerName.equal("EIP191SignatureChecker")) {
+                signatureCheckerAddress = address(new EIP191SignatureChecker());
             } else {
-                revert("Invalid signature checker name");
+                revert(string.concat("Invalid signature checker name: ", signatureCheckerName));
             }
 
             console.log("Deploying the KeyringCore contract proxy and implementation");
@@ -53,8 +50,9 @@ contract Deploy is Script {
             console.log("Using existing proxy address:", proxyAddress);
             console.log("Upgrading the KeyringCore contract for the proxy");
             Options memory opts;
-            // todo: fix this
-            opts.unsafeSkipAllChecks = true;
+
+            // todo: have the reference contract in the env
+            opts.referenceContract = "KeyringCoreFormerVersion.sol";
             vm.startBroadcast(deployerPrivateKey);
             Upgrades.upgradeProxy(proxyAddress, "KeyringCore.sol", abi.encodeCall(KeyringCore.reinitialize, ()), opts);
             vm.stopBroadcast();

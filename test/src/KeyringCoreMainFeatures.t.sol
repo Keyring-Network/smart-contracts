@@ -10,7 +10,7 @@ contract KeyringCoreMainFeaturesTest is KeyringCoreBaseTest {
     bytes32 internal testKeyHash;
     bytes internal testKey;
 
-    function setUp() override public {
+    function setUp() public override {
         vm.chainId(1625247600);
         super.setUp();
         testKey = hex"abcd";
@@ -116,8 +116,6 @@ contract KeyringCoreMainFeaturesTest is KeyringCoreBaseTest {
         keyringCore.unblacklistEntity(1, nonAdmin);
     }
 
-
-
     function testCredentialCreationExpired() public {
         uint256 validFrom = block.timestamp;
         uint256 validTo = validFrom + 2 days;
@@ -130,7 +128,7 @@ contract KeyringCoreMainFeaturesTest is KeyringCoreBaseTest {
         keyringCore.createCredential{value: 1 ether}(nonAdmin, 1, block.chainid, validUntil, 1 ether, testKey, "", "");
     }
 
-       // Credential Creation Tests
+    // Credential Creation Tests
     function testCreateCredentialWithWrongChainId() public {
         uint256 validFrom = block.timestamp;
         uint256 validTo = validFrom + 1 days;
@@ -138,11 +136,8 @@ contract KeyringCoreMainFeaturesTest is KeyringCoreBaseTest {
         uint256 createBefore = block.timestamp + 5 minutes;
         uint256 validUntil = block.timestamp + 1 days;
 
-        
         vm.expectRevert(abi.encodeWithSelector(IKeyringCore.ErrInvalidCredential.selector, 1, nonAdmin, "CHAINID"));
         keyringCore.createCredential{value: 1 ether}(nonAdmin, 1, 1234567890, validUntil, 1 ether, testKey, "", "");
-        
-
     }
 
     // Credential Creation Tests
@@ -266,8 +261,6 @@ contract KeyringCoreMainFeaturesTest is KeyringCoreBaseTest {
         assertFalse(keyringCore.keyExists(testKeyHash));
     }
 
-
-
     function testKeyValidTo() public {
         uint256 validFrom = block.timestamp;
         uint256 validTo = validFrom + 1 days;
@@ -295,7 +288,7 @@ contract KeyringCoreMainFeaturesTest is KeyringCoreBaseTest {
     function testEntityExp() public {
         uint256 validFrom = block.timestamp;
         uint256 validTo = validFrom + 1 days;
-            keyringCore.registerKey(block.chainid, validTo, testKey);
+        keyringCore.registerKey(block.chainid, validTo, testKey);
         uint256 createBefore = block.timestamp + 5 minutes;
         uint256 validUntil = block.timestamp + 1 days;
 
