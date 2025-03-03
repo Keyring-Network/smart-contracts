@@ -7,7 +7,7 @@ build_info = true
 extra_output = ["storageLayout"]
 out = "out"
 solc = "0.8.22"
-fs_permissions = [{ access = "read", path = "out" }, { access = "read-write", path = "networks" }, { access = "read", path = "test/vectors" }]
+fs_permissions = [{ access = "read", path = "out" }, { access = "read", path = "test/fixtures" }]
 
 [dependencies]
 forge-std = "1.9.6"

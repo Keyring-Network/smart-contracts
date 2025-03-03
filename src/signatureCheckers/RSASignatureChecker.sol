@@ -28,7 +28,7 @@ pragma solidity 0.8.22;
     
  */
 
-import "./MessagePacker.sol";
+import "./../MessagePacker.sol";
 import "../interfaces/ISignatureChecker.sol";
 
 contract RSASignatureChecker is ISignatureChecker, MessagePacker {

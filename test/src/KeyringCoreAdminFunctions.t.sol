@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {console} from "forge-std/console.sol";
 import {KeyringCoreBaseTest} from "./KeyringCoreBase.t.sol";
 
-import {AlwaysValidSignatureChecker} from "../../src/messageVerifiers/AlwaysValidSignatureChecker.sol";
+import {AlwaysValidSignatureChecker} from "../../src/signatureCheckers/AlwaysValidSignatureChecker.sol";
 
 contract KeyringCoreAdminFeaturesTest is KeyringCoreBaseTest {
     address public feeRecipient = address(0x3);

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.22;
 
-import "./MessagePacker.sol";
+import "./../MessagePacker.sol";
 import "../interfaces/ISignatureChecker.sol";
 
 contract EIP191SignatureChecker is ISignatureChecker, MessagePacker {

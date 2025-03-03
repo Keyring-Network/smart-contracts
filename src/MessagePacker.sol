@@ -19,7 +19,13 @@ contract MessagePacker {
         bytes calldata backdoor
     ) public view returns (bytes memory) {
         return abi.encodePacked(
-            tradingAddress, uint8(0), uint24(policyId), block.chainid, uint32(validUntil), uint160(cost), backdoor
+            tradingAddress,
+            uint8(0),
+            uint24(policyId),
+            uint32(block.chainid),
+            uint32(validUntil),
+            uint160(cost),
+            backdoor
         );
     }
 }

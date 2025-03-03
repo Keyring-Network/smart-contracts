@@ -6,7 +6,6 @@ import "@openzeppelin-contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/IKeyringCore.sol";
 import "./interfaces/ISignatureChecker.sol";
-import "./mocks/KeyringCoreFormerVersion.sol";
 
 contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpgradeable {
     /// @dev Address of the admin.
@@ -26,6 +25,10 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
         _disableInitializers();
     }
 
+    /**
+     * @notice Initializes the contract.
+     * @param _signatureChecker The address of the signature checker.
+     */
     function initialize(address _signatureChecker) public initializer {
         __Ownable_init(msg.sender);
         __UUPSUpgradeable_init();
@@ -39,10 +42,18 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
         signatureChecker = ISignatureChecker(_signatureChecker);
     }
 
+    /**
+     * @notice Reinitializes the contract.
+     * @dev This function is only callable by the owner.
+     */
     function reinitialize() public onlyOwner reinitializer(4) {
         initialize(address(signatureChecker));
     }
 
+    /**
+     * @notice Authorizes the upgrade of the contract.
+     * @dev This function is only callable by the owner.
+     */
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /**
