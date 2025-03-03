@@ -13,16 +13,17 @@ import {AlwaysValidSignatureChecker} from "../src/messageVerifiers/AlwaysValidSi
 contract Deploy is Script {
     using Strings for string;
 
-    string constant NETWORKS_DIR = "networks/";
-
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        string memory networkName = vm.envString("NETWORK_NAME");
-        string memory filePath = string.concat(NETWORKS_DIR, networkName, ".txt");
+        string memory proxyAddressStr;
+        try vm.envString("PROXY_ADDRESS") returns (string memory addr) {
+            proxyAddressStr = addr;
+        } catch {
+            proxyAddressStr = "";
+        }
+        address proxyAddress = bytes(proxyAddressStr).length > 0 ? vm.parseAddress(proxyAddressStr) : address(0);
 
-        if (!vm.exists(filePath)) {
-            console.log("No proxy address file found for network", networkName);
-
+        if (proxyAddress == address(0)) {
             vm.startBroadcast(deployerPrivateKey);
 
             console.log("Deploying the Signature Checker", vm.envString("SIGNATURE_CHECKER_NAME"));
@@ -39,23 +40,18 @@ contract Deploy is Script {
             }
 
             console.log("Deploying the KeyringCore contract proxy and implementation");
-            address proxyAddress = Upgrades.deployUUPSProxy(
+            proxyAddress = Upgrades.deployUUPSProxy(
                 "KeyringCore.sol", abi.encodeCall(KeyringCore.initialize, signatureCheckerAddress)
             );
             vm.stopBroadcast();
             if (vm.isContext(VmSafe.ForgeContext.ScriptBroadcast)) {
-                console.log("Deployment is actually broadcasted, saving the proxy address to the file");
-                vm.writeFile(filePath, Strings.toHexString(uint256(uint160(proxyAddress)), 20));
+                console.log("Deployment is actually broadcasted, proxy address:", proxyAddress);
             } else {
-                console.log(
-                    "Deployment is not broadcasted, skipping the file saving (add --broadcast to the command to save the address)"
-                );
+                console.log("Deployment is not broadcasted, skipping (add --broadcast to the command to deploy)");
             }
         } else {
-            console.log("Proxy address file found for network", networkName);
-
-            address proxyAddress = vm.parseAddress(vm.readFile(filePath));
-            console.log("Upgrading the KeyringCore contract for the proxy at", proxyAddress);
+            console.log("Using existing proxy address:", proxyAddress);
+            console.log("Upgrading the KeyringCore contract for the proxy");
             vm.startBroadcast(deployerPrivateKey);
             Upgrades.upgradeProxy(proxyAddress, "KeyringCore.sol", abi.encodeCall(KeyringCore.reinitialize, ()));
             vm.stopBroadcast();
