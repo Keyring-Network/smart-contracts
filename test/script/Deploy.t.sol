@@ -23,8 +23,12 @@ contract DeployTest is Test, IDeployOptions {
             deployOptions.signatureCheckerName = value;
         } else if (keccak256(bytes(key)) == keccak256(bytes("PROXY_ADDRESS"))) {
             deployOptions.proxyAddress = value;
-        } else if (keccak256(bytes(key)) == keccak256(bytes("REFERENCE_CONTRACT"))) {
-            deployOptions.referenceContract = value;
+        } else if (keccak256(bytes(key)) == keccak256(bytes("ETHERSCAN_API_KEY"))) {
+            deployOptions.etherscanApiKey = value;
+        } else if (keccak256(bytes(key)) == keccak256(bytes("ETHERSCAN_BASE_API_URL"))) {
+            deployOptions.verifierUrl = value;
+        } else {
+            revert("Unknown environment variable");
         }
     }
 
@@ -45,7 +49,8 @@ contract DeployTest is Test, IDeployOptions {
         setEnv("PRIVATE_KEY", "");
         setEnv("SIGNATURE_CHECKER_NAME", "");
         setEnv("PROXY_ADDRESS", "");
-        setEnv("REFERENCE_CONTRACT", "");
+        setEnv("ETHERSCAN_API_KEY", "");
+        setEnv("ETHERSCAN_BASE_API_URL", "");
     }
 
     function test_RevertOnMissingSignatureCheckerName() public {
@@ -102,7 +107,6 @@ contract DeployTest is Test, IDeployOptions {
         setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
         setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
         setEnv("PROXY_ADDRESS", vm.toString(proxyAddress));
-        setEnv("REFERENCE_CONTRACT", "KeyringCoreReferenceContract.sol");
         address upgradedProxyAddress = address(run());
         assertEq(upgradedProxyAddress, proxyAddress, "Proxy address should remain the same");
     }
@@ -118,7 +122,6 @@ contract DeployTest is Test, IDeployOptions {
         assertTrue(address(proxyAddress) != address(0));
 
         setEnv("PROXY_ADDRESS", vm.toString(proxyAddress));
-        setEnv("REFERENCE_CONTRACT", "KeyringCoreReferenceContract.sol");
         vm.expectRevert(bytes4(keccak256("InvalidInitialization()")));
         run();
     }

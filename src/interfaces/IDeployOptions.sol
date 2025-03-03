@@ -6,6 +6,7 @@ interface IDeployOptions {
         uint256 deployerPrivateKey;
         string signatureCheckerName;
         string proxyAddress;
-        string referenceContract;
+        string etherscanApiKey;
+        string verifierUrl;
     }
 }

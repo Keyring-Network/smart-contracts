@@ -21,7 +21,8 @@ contract Deploy is Script, IDeployOptions {
             deployerPrivateKey: vm.envUint("PRIVATE_KEY"),
             signatureCheckerName: vm.envOr("SIGNATURE_CHECKER_NAME", emptyString),
             proxyAddress: vm.envOr("PROXY_ADDRESS", emptyString),
-            referenceContract: vm.envOr("REFERENCE_CONTRACT", emptyString)
+            etherscanApiKey: vm.envOr("ETHERSCAN_API_KEY", emptyString),
+            verifierUrl: vm.envOr("ETHERSCAN_BASE_API_URL", emptyString)
         });
         return deploy(deployOptions);
     }
@@ -51,9 +52,15 @@ contract Deploy is Script, IDeployOptions {
             vm.stopBroadcast();
         } else {
             console.log("Using existing proxy address:", proxyAddress);
-            console.log("Upgrading the KeyringCore contract for the proxy");
             Options memory upgradeOptions;
-            upgradeOptions.referenceContract = deployOptions.referenceContract;
+
+            // If etherscan api key and verifier url are set, download the source code and use it as a reference contract
+            if (bytes(deployOptions.etherscanApiKey).length > 0 && bytes(deployOptions.verifierUrl).length > 0) {
+                downloadSourceCode(proxyAddress, deployOptions.etherscanApiKey, deployOptions.verifierUrl);
+                upgradeOptions.referenceContract = "downloaded_source_code.sol";
+            } else {
+                upgradeOptions.referenceContract = "KeyringCoreReferenceContract.sol";
+            }
             vm.startBroadcast(deployOptions.deployerPrivateKey);
             Upgrades.upgradeProxy(
                 proxyAddress, "KeyringCore.sol", abi.encodeCall(KeyringCore.reinitialize, ()), upgradeOptions
@@ -61,5 +68,32 @@ contract Deploy is Script, IDeployOptions {
             vm.stopBroadcast();
         }
         return KeyringCore(proxyAddress);
+    }
+
+    function downloadSourceCode(address contractAddress, string memory etherscanApiKey, string memory verifierUrl)
+        public
+    {
+        // Construct the Etherscan API URL
+        string memory apiUrl = string(
+            abi.encodePacked(
+                verifierUrl,
+                "/api?module=contract&action=getsourcecode&address=",
+                vm.toString(contractAddress),
+                "&apikey=",
+                etherscanApiKey
+            )
+        );
+
+        // Make the API call
+        string[] memory cmd = new string[](3);
+        cmd[0] = "curl";
+        cmd[1] = "-s";
+        cmd[2] = apiUrl;
+        bytes memory response = vm.ffi(cmd);
+        string memory responseString = string(response);
+
+        // Parse and output the flattened code
+        console.log("Contract code at %s:", contractAddress);
+        console.log(responseString);
     }
 }
