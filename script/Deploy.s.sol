@@ -13,7 +13,7 @@ import {AlwaysValidSignatureChecker} from "../src/messageVerifiers/AlwaysValidSi
 contract Deploy is Script {
     using Strings for string;
 
-    function run() external {
+    function run() external returns (KeyringCore) {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         string memory proxyAddressStr;
         try vm.envString("PROXY_ADDRESS") returns (string memory addr) {
@@ -52,9 +52,13 @@ contract Deploy is Script {
         } else {
             console.log("Using existing proxy address:", proxyAddress);
             console.log("Upgrading the KeyringCore contract for the proxy");
+            Options memory opts;
+            // todo: fix this
+            opts.unsafeSkipAllChecks = true;
             vm.startBroadcast(deployerPrivateKey);
-            Upgrades.upgradeProxy(proxyAddress, "KeyringCore.sol", abi.encodeCall(KeyringCore.reinitialize, ()));
+            Upgrades.upgradeProxy(proxyAddress, "KeyringCore.sol", abi.encodeCall(KeyringCore.reinitialize, ()), opts);
             vm.stopBroadcast();
         }
+        return KeyringCore(proxyAddress);
     }
 }

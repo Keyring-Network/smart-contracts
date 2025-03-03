@@ -7,7 +7,7 @@ import "@openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/IKeyringCore.sol";
 import "./interfaces/ISignatureChecker.sol";
 
-/// @custom:oz-upgrades-from KeyringCore
+/// @custom:oz-upgrades-unsafe-allow
 contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpgradeable {
     /// @dev Address of the admin.
     address internal _admin;
@@ -349,4 +349,5 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
             revert ErrFailedSendOfValue();
         }
     }
+
 }

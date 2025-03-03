@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import {ISignatureChecker} from "./ISignatureChecker.sol";
+
 /**
  * @title IKeyringCore
  * @notice Interface for the KeyringCore contract. This acts as a definition point for structs, events, and errors.
@@ -124,6 +126,39 @@ interface IKeyringCore {
         bytes calldata backdoor
     ) external payable;
 
+    /** 
+     * @notice Sets the admin.
+     * @param newAdmin The address of the new admin.
+     */
+    function setAdmin(address newAdmin) external;
+
+    /** 
+     * @notice Registers a key.
+     * @param chainId The chainId for which the key is valid.
+     * @param validTo The end time of the key's validity.
+     * @param key The key. */
+    function registerKey(uint256 chainId, uint256 validTo, bytes calldata key) external;
+
+    /** 
+     * @notice Revokes a key.
+     * @param keyHash The hash of the key.
+     */     
+    function revokeKey(bytes32 keyHash) external;
+
+    /** 
+     * @notice Blacklists an entity.
+     * @param policyId The ID of the policy.
+     * @param entity The address of the entity.
+        */
+    function blacklistEntity(uint256 policyId, address entity) external;
+
+    /** 
+     * @notice Unblacklists an entity.
+     * @param policyId The ID of the policy.
+     * @param entity The address of the entity.
+     */
+    function unblacklistEntity(uint256 policyId, address entity) external;
+
     /// @notice Checks if a credential is valid for an entity.
     /// @param entity_ The address of the entity.
     /// @param policyId_ The ID of the policy.
@@ -135,4 +170,77 @@ interface IKeyringCore {
     /// @param entity_ The address of the entity.
     /// @return True if the credential is valid, false otherwise.
     function checkCredential(uint256 policyId_, address entity_) external view returns (bool);
+
+    /** 
+     * @notice Returns the admin.
+     * @return The address of the admin.
+     */
+    function admin() external view returns (address);
+
+    /** 
+     * @notice Returns if a key exists.
+     * @param keyHash The hash of the key.
+     * @return True if the key exists, false otherwise.
+     */
+    function keyExists(bytes32 keyHash) external view returns (bool);
+
+    /** 
+     * @notice Returns if an entity is blacklisted.
+     * @param policyId The ID of the policy.
+     * @param entity The address of the entity.
+     * @return True if the entity is blacklisted, false otherwise.
+     */
+    function entityBlacklisted(uint256 policyId, address entity) external view returns (bool);
+
+    /** 
+     * @notice Returns the entity data.
+     * @param policyId The ID of the policy.
+     * @param entity The address of the entity.
+     * @return The entity data.
+     */
+    function entityData(uint256 policyId, address entity) external view returns (EntityData memory);
+
+    /** 
+     * @notice Collects the fees.
+     * @param recipient The address of the recipient.
+     */
+    function collectFees(address recipient) external;
+
+    /**
+     * @notice Returns the signature checker.
+     * @return The signature checker.
+     */
+    function signatureChecker() external view returns (ISignatureChecker);
+
+    /**
+     * @notice Returns the hash of a key.
+     * @param key The key.
+     * @return The hash of the key.
+     */
+    function getKeyHash(bytes calldata key) external pure returns (bytes32);
+
+    /**
+     * @notice Returns the validTo of a key.
+     * @param keyHash The hash of the key.
+     * @return The validTo of the key.
+     */
+    function keyValidTo(bytes32 keyHash) external view returns (uint256);
+    
+    /**
+     * @notice Returns the key details.
+     * @param keyHash The hash of the key.
+     * @return The key details.
+     */
+    function keyDetails(bytes32 keyHash) external view returns (KeyEntry memory);
+
+    /**
+     * @notice Returns the expiration of an entity.
+     * @param policyId The ID of the policy.
+     * @param entity The address of the entity.
+     * @return The expiration of the entity.
+     */
+    function entityExp(uint256 policyId, address entity) external view returns (uint256);
+    
+    
+    
 }
