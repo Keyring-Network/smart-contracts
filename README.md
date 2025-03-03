@@ -2,8 +2,6 @@
 
 [![Tests](https://github.com/keyring-network/smart-contracts/actions/workflows/ci.yml/badge.svg)](https://github.com/keyring-network/smart-contracts/actions/workflows/test.yml)
 
-(https://img.shields.io/github/tag/pandao/editor.md.svg) ![]
-
 Smart contracts for [Keyring Network](https://www.keyring.network/), a platform providing institutional-grade compliance automation and permissioning solutions for blockchain protocols powered by zero-knowledge privacy.
 
 ## Prerequisites
