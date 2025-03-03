@@ -1,9 +1,12 @@
 # Keyring Network Smart Contracts
 
+[![Tests](https://github.com/keyring-network/smart-contracts/actions/workflows/test.yml/badge.svg)](https://github.com/keyring-network/smart-contracts/actions/workflows/test.yml)
+
+Smart contracts for [Keyring Network](https://www.keyring.network/), a platform providing institutional-grade compliance automation and permissioning solutions for blockchain protocols powered by zero-knowledge privacy.
+
 ## Prerequisites
 
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
-- Solidity ^0.8.22
 
 ## Installation
 
@@ -28,20 +31,6 @@ Run all tests:
 forge test
 ```
 
-Run tests with verbosity:
-
-```bash
-forge test -vv
-```
-
-Run specific test file:
-
-```bash
-forge test --match-path test/src/KeyringCore.t.sol
-```
-
-### Coverage
-
 Generate coverage report:
 
 ```bash
@@ -52,27 +41,32 @@ forge coverage
 
 1. Set up environment variables:
 
-```bash
-export PRIVATE_KEY=<your-private-key>
-export SIGNATURE_CHECKER_NAME=<checker-name>  # e.g., "AlwaysValidSignatureChecker"
-export PROXY_ADDRESS=<proxy-address>  # Optional, for upgrades
-export REFERENCE_CONTRACT=<contract-name>  # e.g., "KeyringCoreReferenceContract.sol"
-```
-
-2. Deploy using the deployment script:
+Set the required variables listed in the .env.example or copy it as .env
 
 ```bash
-forge script script/Deploy.s.sol:Deploy --rpc-url <your-rpc-url> --broadcast
+cp .env.example .env
 ```
 
-3. For upgrades, specify the proxy address:
+2. Run the deployment script
+
+**w/o Etherscan verification:**
 
 ```bash
-forge script script/Deploy.s.sol:Deploy --rpc-url <your-rpc-url> --broadcast --proxy-address <existing-proxy-address>
+forge script script/Deploy.s.sol \
+            --force \
+            --broadcast \
+            --rpc-url ${{ env.RPC_URL }} \
 ```
 
-## Available Signature Checkers
+**w/ Etherscan verification:**
 
-- `AlwaysValidSignatureChecker`: Accepts all signatures except "dead"
-- `EIP191SignatureChecker`: Validates EIP-191 signatures
-- `RSASignatureChecker`: Validates RSA signatures
+```bash
+forge script script/Deploy.s.sol \
+            --force \
+            --broadcast \
+            --rpc-url ${{ env.RPC_URL }} \
+            --verify \
+            --etherscan-api-key "${{ env.ETHERSCAN_API_KEY }}" \
+            --verifier-url "${{ env.ETHERSCAN_BASE_API_URL }}" \
+            --retries 20
+```

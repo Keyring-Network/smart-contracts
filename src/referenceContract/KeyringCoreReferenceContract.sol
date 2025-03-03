@@ -6,8 +6,6 @@ import {OwnableUpgradeable} from "@openzeppelin-contracts-upgradeable/access/Own
 import {UUPSUpgradeable} from "@openzeppelin-contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract KeyringCoreReferenceContract is Initializable, OwnableUpgradeable, UUPSUpgradeable {
-    
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -26,4 +24,4 @@ contract KeyringCoreReferenceContract is Initializable, OwnableUpgradeable, UUPS
      * @dev This function is only callable by the owner.
      */
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
-    }
+}

@@ -24,9 +24,10 @@ contract KeyringCoreTest is Test {
     bytes32 public testKeyHash;
 
     function setUp() public {
-        
         keyringCore = IKeyringCore(
-            Upgrades.deployUUPSProxy("KeyringCore.sol", abi.encodeCall(IKeyringCore.initialize, address(new AlwaysValidSignatureChecker())))
+            Upgrades.deployUUPSProxy(
+                "KeyringCore.sol", abi.encodeCall(IKeyringCore.initialize, address(new AlwaysValidSignatureChecker()))
+            )
         );
         testKeyHash = keyringCore.getKeyHash(testKey);
     }
@@ -224,25 +225,23 @@ contract KeyringCoreTest is Test {
         validTo = validFrom + 1 days;
         keyringCore.registerKey(block.chainid, validTo, testKey);
 
-        
         // pass 1 - new credential
         uint256 validUntil = block.timestamp + 1 days;
         keyringCore.createCredential{value: 1 ether}(user, 1, block.chainid, validUntil, 1 ether, testKey, "", "");
         assertTrue(keyringCore.checkCredential(1, user));
-        
 
         // pass 2 - same credential, but different validUntil
         validUntil = validUntil + 32 seconds;
         keyringCore.createCredential{value: 1 ether}(newAdmin, 1, block.chainid, validUntil, 1 ether, testKey, "", "");
         assertTrue(keyringCore.checkCredential(1, user));
-        
+
         // fail - same credential, yet different validUntil, but with invalid signature
         validUntil = validUntil + 32 seconds;
         vm.expectRevert(abi.encodeWithSelector(IKeyringCore.ErrInvalidCredential.selector, 1, user, "SIG"));
         // dead is a special signature that will never be valid for the AlwaysValidSignatureChecker
         keyringCore.createCredential{value: 1 ether}(user, 1, block.chainid, validUntil, 1 ether, hex"dead", "", "");
-        
     }
+
     function test_CreateCredentialInsufficientPayment() public {
         uint256 validFrom = block.timestamp;
         validTo = validFrom + 1 days;
