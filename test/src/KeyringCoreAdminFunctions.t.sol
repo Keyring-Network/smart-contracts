@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {console} from "forge-std/console.sol";
 import {KeyringCoreBaseTest} from "./KeyringCoreBase.t.sol";
-
+import {IKeyringCore} from "../../src/interfaces/IKeyringCore.sol";
 import {AlwaysValidSignatureChecker} from "../../src/signatureCheckers/AlwaysValidSignatureChecker.sol";
 
 contract KeyringCoreAdminFeaturesTest is KeyringCoreBaseTest {
@@ -50,40 +50,46 @@ contract KeyringCoreAdminFeaturesTest is KeyringCoreBaseTest {
         assertEq(feeRecipient.balance, 1 ether);
     }
 
-    function testFailSetAdminFromNonAdmin() public {
+    function test_FailSetAdminFromNonAdmin() public {
         vm.prank(nonAdmin);
+        vm.expectRevert(abi.encodeWithSelector(IKeyringCore.ErrCallerNotAdmin.selector, nonAdmin));
         keyringCore.setAdmin(address(0x5));
     }
 
-    function testFailRegisterKeyFromNonAdmin() public {
+    function test_FailRegisterKeyFromNonAdmin() public {
         vm.prank(nonAdmin);
+        vm.expectRevert(abi.encodeWithSelector(IKeyringCore.ErrCallerNotAdmin.selector, nonAdmin));
         keyringCore.registerKey(block.chainid, validTo, key);
     }
 
-    function testFailRevokeKeyFromNonAdmin() public {
+    function test_FailRevokeKeyFromNonAdmin() public {
         keyringCore.registerKey(block.chainid, validTo, key);
         bytes32 keyHash = keccak256(key);
 
         vm.prank(nonAdmin);
+        vm.expectRevert(abi.encodeWithSelector(IKeyringCore.ErrCallerNotAdmin.selector, nonAdmin));
         keyringCore.revokeKey(keyHash);
     }
 
-    function testFailBlacklistEntityFromNonAdmin() public {
+    function test_FailBlacklistEntityFromNonAdmin() public {
         vm.prank(nonAdmin);
+        vm.expectRevert(abi.encodeWithSelector(IKeyringCore.ErrCallerNotAdmin.selector, nonAdmin));
         keyringCore.blacklistEntity(policyId, blacklistedEntity);
     }
 
-    function testFailUnblacklistEntityFromNonAdmin() public {
+    function test_FailUnblacklistEntityFromNonAdmin() public {
         keyringCore.blacklistEntity(policyId, blacklistedEntity);
 
         vm.prank(nonAdmin);
+        vm.expectRevert(abi.encodeWithSelector(IKeyringCore.ErrCallerNotAdmin.selector, nonAdmin));
         keyringCore.unblacklistEntity(policyId, blacklistedEntity);
     }
 
-    function testFailCollectFeesFromNonAdmin() public {
+    function test_FailCollectFeesFromNonAdmin() public {
         vm.deal(address(keyringCore), 1 ether);
 
         vm.prank(nonAdmin);
+        vm.expectRevert(abi.encodeWithSelector(IKeyringCore.ErrCallerNotAdmin.selector, nonAdmin));
         keyringCore.collectFees(feeRecipient);
     }
 }
