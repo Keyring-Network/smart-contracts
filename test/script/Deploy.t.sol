@@ -7,115 +7,120 @@ import {AlwaysValidSignatureChecker} from "../../src/signatureCheckers/AlwaysVal
 import {EIP191SignatureChecker} from "../../src/signatureCheckers/EIP191SignatureChecker.sol";
 import {RSASignatureChecker} from "../../src/signatureCheckers/RSASignatureChecker.sol";
 import {IKeyringCore} from "../../src/interfaces/IKeyringCore.sol";
+import {IDeployOptions} from "../../src/interfaces/IDeployOptions.sol";
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
-contract DeployTest is Test {
+
+contract DeployTest is Test, IDeployOptions {
     Deploy deployer;
-
     string deployerPrivateKeyStr;
+    DeployOptions deployOptions;
+    address deployerAddress;
+
+    function setEnv(string memory key, string memory value) internal {
+        if (keccak256(bytes(key)) == keccak256(bytes("PRIVATE_KEY"))) {
+            deployOptions.deployerPrivateKey = uint256(bytes32(bytes(value)));
+        } else if (keccak256(bytes(key)) == keccak256(bytes("SIGNATURE_CHECKER_NAME"))) {
+            deployOptions.signatureCheckerName = value;
+        } else if (keccak256(bytes(key)) == keccak256(bytes("PROXY_ADDRESS"))) {
+            deployOptions.proxyAddress = value;
+        } else if (keccak256(bytes(key)) == keccak256(bytes("REFERENCE_CONTRACT"))) {
+            deployOptions.referenceContract = value;
+        }
+    }
+
+    function run() internal returns (IKeyringCore) {
+        return deployer.deploy(deployOptions);
+    }
 
     function setDeployerPrivateKey() internal {
         uint256 deployerPrivateKey = 0xA11CE;
         deployerPrivateKeyStr = vm.toString(deployerPrivateKey);
-        address deployerAddress = vm.addr(deployerPrivateKey);
+        deployerAddress = vm.addr(deployerPrivateKey);
         vm.deal(deployerAddress, 100 ether);
     }
 
     function setUp() public {
         deployer = new Deploy();
         setDeployerPrivateKey();
-        vm.setEnv("PRIVATE_KEY", "");
-        vm.setEnv("SIGNATURE_CHECKER_NAME", "");
-        vm.setEnv("PROXY_ADDRESS", "");
+        setEnv("PRIVATE_KEY", "");
+        setEnv("SIGNATURE_CHECKER_NAME", "");
+        setEnv("PROXY_ADDRESS", "");
+        setEnv("REFERENCE_CONTRACT", "");
     }
 
     function test_RevertOnMissingSignatureCheckerName() public {
-        vm.skip(true, "Bug with env var in Foundry");
-        vm.setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
+        setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
         vm.expectRevert("Invalid signature checker name: ");
-        deployer.run();
+        run();
     }
 
     function test_RevertOnInvalidSignatureCheckerName() public {
-        vm.skip(true, "Bug with env var in Foundry");
-        vm.setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
-        vm.setEnv("SIGNATURE_CHECKER_NAME", "InvalidChecker");
+        setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
+        setEnv("SIGNATURE_CHECKER_NAME", "InvalidChecker");
 
         vm.expectRevert("Invalid signature checker name: InvalidChecker");
-        deployer.run();
+        run();
     }
 
     function test_DeployNewProxy() public {
-        vm.skip(true, "Bug with env var in Foundry");
-        // Set environment variables
-        vm.setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
-        vm.setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
-        // Don't set PROXY_ADDRESS to test new deployment
+        setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
+        setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
+        IKeyringCore proxyAddress = run();
 
-        // Run the deployment script
-        IKeyringCore proxyAddress = deployer.run();
-
-        // Verify the deployment
         assertTrue(address(proxyAddress) != address(0), "Proxy address should not be null");
-
-        // Verify the signature checker is set
         assertTrue(address(proxyAddress.signatureChecker()) != address(0), "Signature checker should be set");
     }
 
     function test_DeployWithDifferentSignatureCheckers() public {
-        vm.skip(true, "Bug with env var in Foundry");
-        vm.setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
+        setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
 
         // Test with AlwaysValidSignatureChecker
-        vm.setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
-        IKeyringCore keyringCore1 = deployer.run();
+        setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
+        IKeyringCore keyringCore1 = run();
         assertTrue(address(keyringCore1) != address(0));
         assertTrue(address(keyringCore1.signatureChecker()) != address(0));
 
         // Test with EIP191SignatureChecker
-        vm.setEnv("SIGNATURE_CHECKER_NAME", "EIP191SignatureChecker");
-        IKeyringCore keyringCore2 = deployer.run();
+        setEnv("SIGNATURE_CHECKER_NAME", "EIP191SignatureChecker");
+        IKeyringCore keyringCore2 = run();
         assertTrue(address(keyringCore2) != address(0));
         assertTrue(address(keyringCore2.signatureChecker()) != address(0));
 
         // Test with RSASignatureChecker
-        vm.setEnv("SIGNATURE_CHECKER_NAME", "RSASignatureChecker");
-        IKeyringCore keyringCore3 = deployer.run();
+        setEnv("SIGNATURE_CHECKER_NAME", "RSASignatureChecker");
+        IKeyringCore keyringCore3 = run();
         assertTrue(address(keyringCore3) != address(0));
         assertTrue(address(keyringCore3.signatureChecker()) != address(0));
     }
 
     function test_UpgradeExistingProxy() public {
-        vm.skip(true, "Bug with env var in Foundry");
-        // First deploy a new proxy
-        vm.setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
-        vm.setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
-        address proxyAddress = address(deployer.run());
-        assertTrue(address(proxyAddress) != address(0));
+        vm.skip(true, "Still having an issue with ownable");
+        vm.prank(deployerAddress);
+        address proxyAddress = Upgrades.deployUUPSProxy("KeyringCoreReferenceContract.sol", "");
+        assertTrue(address(proxyAddress) != address(0), "Proxy address should not be null");
 
-        // Set the PROXY_ADDRESS environment variable
-        vm.setEnv("PROXY_ADDRESS", vm.toString(proxyAddress));
-
-        // Run the upgrade
-        address upgradedProxyAddress = address(deployer.run());
-
-        // Verify the upgrade
+        setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
+        setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
+        setEnv("PROXY_ADDRESS", vm.toString(proxyAddress));
+        setEnv("REFERENCE_CONTRACT", "KeyringCoreReferenceContract.sol");
+        address upgradedProxyAddress = address(run());
         assertEq(upgradedProxyAddress, proxyAddress, "Proxy address should remain the same");
     }
 
     function test_RevertOnUpgradeWithInvalidOwner() public {
-        vm.skip(true, "Bug with env var in Foundry");
         uint256 maliciousPrivateKey = 0xB22DF;
         string memory maliciousAddressPrivateKeyStr = vm.toString(maliciousPrivateKey);
         address maliciousAddress = vm.addr(maliciousPrivateKey);
         vm.deal(maliciousAddress, 100 ether);
-        vm.setEnv("PRIVATE_KEY", maliciousAddressPrivateKeyStr);
-        vm.setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
-        address proxyAddress = address(deployer.run());
+        setEnv("PRIVATE_KEY", maliciousAddressPrivateKeyStr);
+        setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
+        address proxyAddress = address(run());
         assertTrue(address(proxyAddress) != address(0));
 
-        vm.setEnv("PROXY_ADDRESS", vm.toString(proxyAddress));
-
+        setEnv("PROXY_ADDRESS", vm.toString(proxyAddress));
+        setEnv("REFERENCE_CONTRACT", "KeyringCoreReferenceContract.sol");
         vm.expectRevert(bytes4(keccak256("InvalidInitialization()")));
-        deployer.run();
+        run();
     }
 }

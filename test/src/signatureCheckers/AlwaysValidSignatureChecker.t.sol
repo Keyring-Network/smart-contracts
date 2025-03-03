@@ -14,4 +14,8 @@ contract AlwaysValidSignatureCheckerTest is Test {
     function test_Verify() public view {
         assertTrue(checker.checkSignature(address(0), 0, 0, 0, "", "", ""));
     }
+
+    function test_Verify_InvalidSignature() public view {
+        assertFalse(checker.checkSignature(address(0), 0, 0, 0, hex"dead", "", ""));
+    }
 }

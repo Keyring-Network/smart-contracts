@@ -1,66 +1,78 @@
-## Foundry
+# Keyring Network Smart Contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## Prerequisites
 
-Foundry consists of:
+- [Foundry](https://book.getfoundry.sh/getting-started/installation)
+- Solidity ^0.8.22
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+## Installation
 
-## Documentation
+1. Clone the repository:
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+```bash
+git clone <repository-url>
+cd smart-contracts
 ```
 
-### Test
+2. Install dependencies:
 
-```shell
-$ forge test
+```bash
+forge soldeer install
 ```
 
-### Format
+## Testing
 
-```shell
-$ forge fmt
+Run all tests:
+
+```bash
+forge test
 ```
 
-### Gas Snapshots
+Run tests with verbosity:
 
-```shell
-$ forge snapshot
+```bash
+forge test -vv
 ```
 
-### Anvil
+Run specific test file:
 
-```shell
-$ anvil
+```bash
+forge test --match-path test/src/KeyringCore.t.sol
 ```
 
-### Deploy
+### Coverage
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+Generate coverage report:
+
+```bash
+forge coverage
 ```
 
-### Cast
+## Deployment
 
-```shell
-$ cast <subcommand>
+1. Set up environment variables:
+
+```bash
+export PRIVATE_KEY=<your-private-key>
+export SIGNATURE_CHECKER_NAME=<checker-name>  # e.g., "AlwaysValidSignatureChecker"
+export PROXY_ADDRESS=<proxy-address>  # Optional, for upgrades
+export REFERENCE_CONTRACT=<contract-name>  # e.g., "KeyringCoreReferenceContract.sol"
 ```
 
-### Help
+2. Deploy using the deployment script:
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+```bash
+forge script script/Deploy.s.sol:Deploy --rpc-url <your-rpc-url> --broadcast
 ```
+
+3. For upgrades, specify the proxy address:
+
+```bash
+forge script script/Deploy.s.sol:Deploy --rpc-url <your-rpc-url> --broadcast --proxy-address <existing-proxy-address>
+```
+
+## Available Signature Checkers
+
+- `AlwaysValidSignatureChecker`: Accepts all signatures except "dead"
+- `EIP191SignatureChecker`: Validates EIP-191 signatures
+- `RSASignatureChecker`: Validates RSA signatures

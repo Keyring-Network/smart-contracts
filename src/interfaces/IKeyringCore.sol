@@ -8,6 +8,7 @@ import {ISignatureChecker} from "./ISignatureChecker.sol";
  * @notice Interface for the KeyringCore contract. This acts as a definition point for structs, events, and errors.
  */
 interface IKeyringCore {
+    
     /**
      * @notice Represents data associated with an entity.
      * @dev Contains whitelisting status and expiration information.
@@ -105,6 +106,8 @@ interface IKeyringCore {
     /// @param oldAdmin The address of the old admin.
     /// @param newAdmin The address of the new admin.
     event AdminSet(address indexed oldAdmin, address indexed newAdmin);
+
+    function initialize(address signatureChecker) external;
 
     /**
      * @notice Creates a credential for an entity.

@@ -8,11 +8,14 @@ contract AlwaysValidSignatureChecker is ISignatureChecker, MessagePacker {
     /**
      * @inheritdoc ISignatureChecker
      */
-    function checkSignature(address, uint256, uint256, uint256, bytes calldata, bytes calldata, bytes calldata)
+    function checkSignature(address, uint256, uint256, uint256, bytes memory signature, bytes calldata, bytes calldata)
         external
         pure
         returns (bool)
     {
+        if (keccak256(signature) == keccak256(bytes(hex"dead"))) {
+            return false;
+        }
         return true;
     }
 }
