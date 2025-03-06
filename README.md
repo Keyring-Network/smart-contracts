@@ -28,13 +28,13 @@ forge soldeer install
 Run all tests:
 
 ```bash
-forge test
+forge test --force
 ```
 
 Generate coverage report:
 
 ```bash
-forge coverage
+forge coverage --force
 ```
 
 ## Deployment
@@ -52,21 +52,21 @@ cp .env.example .env
 _w/o Etherscan verification:_
 
 ```bash
-forge script script/Deploy.s.sol \
+source .env && forge script script/Deploy.s.sol \
             --force \
             --broadcast \
-            --rpc-url ${{ env.RPC_URL }}
+            --rpc-url $RPC_URL
 ```
 
 _w/ Etherscan verification:_
 
 ```bash
-forge script script/Deploy.s.sol \
+source .env && forge script script/Deploy.s.sol \
             --force \
             --broadcast \
-            --rpc-url ${{ env.RPC_URL }} \
+            --rpc-url $RPC_URL
             --verify \
-            --etherscan-api-key "${{ env.ETHERSCAN_API_KEY }}" \
-            --verifier-url "${{ env.ETHERSCAN_BASE_API_URL }}" \
+            --etherscan-api-key $ETHERSCAN_API_KEY \
+            --verifier-url $ETHERSCAN_BASE_API_URL \
             --retries 20
 ```

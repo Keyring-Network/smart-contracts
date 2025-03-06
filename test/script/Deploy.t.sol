@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {Deploy} from "../../script/Deploy.s.sol";
 import {AlwaysValidSignatureChecker} from "../../src/signatureCheckers/AlwaysValidSignatureChecker.sol";
 import {EIP191SignatureChecker} from "../../src/signatureCheckers/EIP191SignatureChecker.sol";
@@ -9,17 +9,22 @@ import {RSASignatureChecker} from "../../src/signatureCheckers/RSASignatureCheck
 import {IKeyringCore} from "../../src/interfaces/IKeyringCore.sol";
 import {IDeployOptions} from "../../src/interfaces/IDeployOptions.sol";
 import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
-
+import {KeyringCoreReferenceContract} from "../../src/referenceContract/KeyringCoreReferenceContract.sol";
 contract DeployTest is Test, IDeployOptions {
     Deploy deployer;
-    string deployerPrivateKeyStr;
     DeployOptions deployOptions;
+    uint256 deployerPrivateKey;
     address deployerAddress;
 
-    function setEnv(string memory key, string memory value) internal {
+    function setEnv(string memory key, uint256 value) internal {
         if (keccak256(bytes(key)) == keccak256(bytes("PRIVATE_KEY"))) {
-            deployOptions.deployerPrivateKey = uint256(bytes32(bytes(value)));
-        } else if (keccak256(bytes(key)) == keccak256(bytes("SIGNATURE_CHECKER_NAME"))) {
+            deployOptions.deployerPrivateKey = value;
+        } else {
+            revert("Unknown environment variable");
+        }
+    }
+    function setEnv(string memory key, string memory value) internal {
+        if (keccak256(bytes(key)) == keccak256(bytes("SIGNATURE_CHECKER_NAME"))) {
             deployOptions.signatureCheckerName = value;
         } else if (keccak256(bytes(key)) == keccak256(bytes("PROXY_ADDRESS"))) {
             deployOptions.proxyAddress = value;
@@ -36,17 +41,13 @@ contract DeployTest is Test, IDeployOptions {
         return deployer.deploy(deployOptions);
     }
 
-    function setDeployerPrivateKey() internal {
-        uint256 deployerPrivateKey = 0xA11CE;
-        deployerPrivateKeyStr = vm.toString(deployerPrivateKey);
-        deployerAddress = vm.addr(deployerPrivateKey);
-        vm.deal(deployerAddress, 100 ether);
-    }
 
     function setUp() public {
         deployer = new Deploy();
-        setDeployerPrivateKey();
-        setEnv("PRIVATE_KEY", "");
+        deployerPrivateKey = 0xA11CE;
+        deployerAddress = vm.addr(deployerPrivateKey);
+        vm.deal(deployerAddress, 100 ether);
+        setEnv("PRIVATE_KEY", 0);
         setEnv("SIGNATURE_CHECKER_NAME", "");
         setEnv("PROXY_ADDRESS", "");
         setEnv("ETHERSCAN_API_KEY", "");
@@ -54,13 +55,13 @@ contract DeployTest is Test, IDeployOptions {
     }
 
     function test_RevertOnMissingSignatureCheckerName() public {
-        setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
+        setEnv("PRIVATE_KEY", deployerPrivateKey);
         vm.expectRevert("Invalid signature checker name: ");
         run();
     }
 
     function test_RevertOnInvalidSignatureCheckerName() public {
-        setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
+        setEnv("PRIVATE_KEY", deployerPrivateKey);
         setEnv("SIGNATURE_CHECKER_NAME", "InvalidChecker");
 
         vm.expectRevert("Invalid signature checker name: InvalidChecker");
@@ -68,7 +69,7 @@ contract DeployTest is Test, IDeployOptions {
     }
 
     function test_DeployNewProxy() public {
-        setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
+        setEnv("PRIVATE_KEY", deployerPrivateKey);
         setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
         IKeyringCore proxyAddress = run();
 
@@ -77,7 +78,7 @@ contract DeployTest is Test, IDeployOptions {
     }
 
     function test_DeployWithDifferentSignatureCheckers() public {
-        setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
+        setEnv("PRIVATE_KEY", deployerPrivateKey);
 
         // Test with AlwaysValidSignatureChecker
         setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
@@ -99,12 +100,20 @@ contract DeployTest is Test, IDeployOptions {
     }
 
     function test_UpgradeExistingProxy() public {
-        vm.skip(true, "Still having an issue with ownable");
-        vm.prank(deployerAddress);
-        address proxyAddress = Upgrades.deployUUPSProxy("KeyringCoreReferenceContract.sol", "");
+        vm.startPrank(deployerAddress);
+        address proxyAddress = Upgrades.deployUUPSProxy(
+            "KeyringCoreReferenceContract.sol",
+            abi.encodeCall(KeyringCoreReferenceContract.initialize, ())
+        );
+        vm.stopPrank();
         assertTrue(address(proxyAddress) != address(0), "Proxy address should not be null");
+        bytes memory data = abi.encodeWithSignature("owner()");
+        (bool success, bytes memory result) = proxyAddress.staticcall(data);
+        require(success, "Call failed");
+        address keyringOwnerAddress = abi.decode(result, (address));
+        assertTrue(keyringOwnerAddress == deployerAddress, "Owner address should be the deployer");
 
-        setEnv("PRIVATE_KEY", deployerPrivateKeyStr);
+        setEnv("PRIVATE_KEY", deployerPrivateKey);
         setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
         setEnv("PROXY_ADDRESS", vm.toString(proxyAddress));
         address upgradedProxyAddress = address(run());
@@ -112,17 +121,24 @@ contract DeployTest is Test, IDeployOptions {
     }
 
     function test_RevertOnUpgradeWithInvalidOwner() public {
-        uint256 maliciousPrivateKey = 0xB22DF;
-        string memory maliciousAddressPrivateKeyStr = vm.toString(maliciousPrivateKey);
-        address maliciousAddress = vm.addr(maliciousPrivateKey);
-        vm.deal(maliciousAddress, 100 ether);
-        setEnv("PRIVATE_KEY", maliciousAddressPrivateKeyStr);
+        setEnv("PRIVATE_KEY", deployerPrivateKey);
         setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
         address proxyAddress = address(run());
         assertTrue(address(proxyAddress) != address(0));
+        // Get owner using low-level call cause of non external owner() function
+        bytes memory data = abi.encodeWithSignature("owner()");
+        (bool success, bytes memory result) = proxyAddress.staticcall(data);
+        require(success, "Call failed");
+        address keyringOwnerAddress = abi.decode(result, (address));
+        assertTrue(keyringOwnerAddress == deployerAddress);
 
+        uint256 maliciousPrivateKey = 0xB22DF;
+        address maliciousAddress = vm.addr(maliciousPrivateKey);
+        vm.deal(maliciousAddress, 100 ether);
+    
         setEnv("PROXY_ADDRESS", vm.toString(proxyAddress));
-        vm.expectRevert(bytes4(keccak256("InvalidInitialization()")));
+        setEnv("PRIVATE_KEY", maliciousPrivateKey);
+        vm.expectRevert(abi.encodeWithSelector(bytes4(keccak256("OwnableUnauthorizedAccount(address)")), maliciousAddress));
         run();
     }
 }

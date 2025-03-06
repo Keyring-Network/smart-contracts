@@ -36,18 +36,28 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
             _admin = msg.sender;
             emit AdminSet(address(0), msg.sender);
         }
-        if (_signatureChecker == address(0)) {
-            revert ErrInvalidSignatureChecker();
-        }
-        signatureChecker = ISignatureChecker(_signatureChecker);
+        setSignatureChecker(_signatureChecker);
     }
 
     /**
      * @notice Reinitializes the contract.
+     * @param _signatureChecker The address of the signature checker.
      * @dev This function is only callable by the owner.
      */
-    function reinitialize() public onlyOwner reinitializer(4) {
-        initialize(address(signatureChecker));
+    function reinitialize(address _signatureChecker) public onlyOwner reinitializer(4) {
+        setSignatureChecker(_signatureChecker);
+    }
+
+    /**
+     * @notice Sets the signature checker.
+     * @param _signatureChecker The address of the signature checker.
+     * @dev This function is only callable by the owner.
+     */
+    function setSignatureChecker(address _signatureChecker) public onlyOwner {
+        if (_signatureChecker == address(0)) {
+            revert ErrInvalidSignatureChecker();
+        }
+        signatureChecker = ISignatureChecker(_signatureChecker);
     }
 
     /**
