@@ -10,6 +10,7 @@ import {IKeyringCore} from "../../src/interfaces/IKeyringCore.sol";
 import {IDeployOptions} from "../../src/interfaces/IDeployOptions.sol";
 import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {KeyringCoreReferenceContract} from "../../src/referenceContract/KeyringCoreReferenceContract.sol";
+
 contract DeployTest is Test, IDeployOptions {
     Deploy deployer;
     DeployOptions deployOptions;
@@ -23,6 +24,7 @@ contract DeployTest is Test, IDeployOptions {
             revert("Unknown environment variable");
         }
     }
+
     function setEnv(string memory key, string memory value) internal {
         if (keccak256(bytes(key)) == keccak256(bytes("SIGNATURE_CHECKER_NAME"))) {
             deployOptions.signatureCheckerName = value;
@@ -40,7 +42,6 @@ contract DeployTest is Test, IDeployOptions {
     function run() internal returns (IKeyringCore) {
         return deployer.deploy(deployOptions);
     }
-
 
     function setUp() public {
         deployer = new Deploy();
@@ -102,8 +103,7 @@ contract DeployTest is Test, IDeployOptions {
     function test_UpgradeExistingProxy() public {
         vm.startPrank(deployerAddress);
         address proxyAddress = Upgrades.deployUUPSProxy(
-            "KeyringCoreReferenceContract.sol",
-            abi.encodeCall(KeyringCoreReferenceContract.initialize, ())
+            "KeyringCoreReferenceContract.sol", abi.encodeCall(KeyringCoreReferenceContract.initialize, ())
         );
         vm.stopPrank();
         assertTrue(address(proxyAddress) != address(0), "Proxy address should not be null");
@@ -135,10 +135,12 @@ contract DeployTest is Test, IDeployOptions {
         uint256 maliciousPrivateKey = 0xB22DF;
         address maliciousAddress = vm.addr(maliciousPrivateKey);
         vm.deal(maliciousAddress, 100 ether);
-    
+
         setEnv("PROXY_ADDRESS", vm.toString(proxyAddress));
         setEnv("PRIVATE_KEY", maliciousPrivateKey);
-        vm.expectRevert(abi.encodeWithSelector(bytes4(keccak256("OwnableUnauthorizedAccount(address)")), maliciousAddress));
+        vm.expectRevert(
+            abi.encodeWithSelector(bytes4(keccak256("OwnableUnauthorizedAccount(address)")), maliciousAddress)
+        );
         run();
     }
 }
