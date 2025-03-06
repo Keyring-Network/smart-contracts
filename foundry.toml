@@ -7,6 +7,7 @@ build_info = true
 extra_output = ["storageLayout"]
 out = "out"
 solc = "0.8.22"
+evm_version = "paris"
 fs_permissions = [{ access = "read", path = "out" }, { access = "read", path = "test/fixtures" }]
 
 [dependencies]
