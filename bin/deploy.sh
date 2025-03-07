@@ -74,7 +74,7 @@ export PROXY_ADDRESS="0x0000000000000000000000000000000000000000"
 SIGNATURE_CHECKERS_NAMES=$(find "$ROOT/src/signatureCheckers" -name "*.sol" -exec basename {} .sol \;)
 
 # cleanup the out directory
-rm -rf "$OUT_FOLDER" && \
+rm -rf "$OUT_FOLDER"/* && \
 forge clean && \
 forge build
 
