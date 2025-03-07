@@ -66,6 +66,11 @@ contract Deploy is Script, IDeployOptions {
             );
             vm.stopBroadcast();
         }
+        // store the proxy address in the file out/KeyringCoreProxy.address only if we're not in a test context
+        if (!vm.isContext(VmSafe.ForgeContext.Test)) {
+            vm.writeFile("out/KeyringCoreProxy.address", vm.toString(proxyAddress));
+        }
+
         return KeyringCore(proxyAddress);
     }
 }

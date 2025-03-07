@@ -4,7 +4,7 @@ services:
   node:
     image: smart-contracts:testnet
     ports:
-      - "8545:8545"
+    - "8545:8545"
     command: |
       /bin/sh -c '
         bash ./bin/testnet-config.sh \
@@ -19,13 +19,13 @@ services:
         done; \
       '
     healthcheck:
-      test: ["CMD", "curl", "--fail", "-X", "POST", "-H", "Content-Type: application/json", "--data", '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}', "http://localhost:8545"]
+      test: [ "CMD", "curl", "--fail", "-X", "POST", "-H", "Content-Type: application/json", "--data", '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}', "http://localhost:8545" ]
       interval: "1s"
       timeout: "10s"
       retries: 10
       start_period: "1s"
     volumes:
-      - contracts:/usr/src/app/out-test
+    - contracts:/usr/src/app/out
 
   deploy-contracts:
     image: smart-contracts:testnet
@@ -35,10 +35,9 @@ services:
     command: >
       bash ./bin/deploy.sh
         --rpc http://node:8545
-        --chain 1337
         --private-key 0x024cf65eb3bc550a1a6675aa21d146d7476fc5b62715d24fb2e0027647a213af
     volumes:
-      - contracts:/usr/src/app/out-test
+    - contracts:/usr/src/app/out
 
 volumes:
   contracts:
