@@ -34,7 +34,7 @@ forge test --force
 Generate coverage report:
 
 ```bash
-forge coverage --force
+forge clean && forge build && forge coverage
 ```
 
 ## Deployment
