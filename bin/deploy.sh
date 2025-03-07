@@ -21,22 +21,22 @@
 set -euo pipefail
 
 ROOT="$(dirname "$(dirname "$(realpath "$0")")")"
+OUT_FOLDER="$ROOT/out"
 
 # Default values
-PRV_KEY="0x024cf65eb3bc550a1a6675aa21d146d7476fc5b62715d24fb2e0027647a213af"
+PRIVATE_KEY="0x024cf65eb3bc550a1a6675aa21d146d7476fc5b62715d24fb2e0027647a213af"
 RPC_URL=http://localhost:8545
-CHAIN_ID=1337
 
 # Help function
 display_help() {
     echo "This script accepts the following command line arguments:"
     echo "--rpc: the network RPC"
-    echo "--chain: the network chain id"
     echo "--private-key: The deployer private key"
+    echo "--chain: useless. Kept for backwards compatibility."
     echo ""
     
     echo "For example:"
-    echo "bash bin/deploy.sh --rpc $RPC_URL --chain $CHAIN_ID --private-key $PRV_KEY"
+    echo "bash bin/deploy.sh --rpc $RPC_URL --private-key $PRIVATE_KEY"
 }
 
 # Parse command-line arguments
@@ -46,12 +46,12 @@ while [[ $# -gt 0 ]]; do
             RPC_URL="$2"
             shift 2
             ;;
-        --chain)
-            CHAIN_ID="$2"
+        --private-key)
+            PRIVATE_KEY="$2"
             shift 2
             ;;
-        --private-key)
-            PRV_KEY="$2"
+        --chain)
+            CHAIN_ID="$2"
             shift 2
             ;;
         --help)
@@ -66,45 +66,31 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# get public key from private key
-echo "Deployer private key: $PRV_KEY"
+echo "Deployer private key: $PRIVATE_KEY"
+echo "RPC URL: $RPC_URL"
 
-# Assumes ``$ forge build`` has already been run
-# Deploy the prod contract using Forge
-forge script "$ROOT/script/nonupgradable.s.sol" --rpc-url $RPC_URL --private-key $PRV_KEY --broadcast
+# push private_key and signature_checker to the environment
+export PRIVATE_KEY=$PRIVATE_KEY
 
-# Save the deployed contract address to a local file
-addr=$(
-    cast receipt --rpc-url $RPC_URL \
-    $(
-        cast bn --rpc-url $RPC_URL | \
-        cast bl --rpc-url $RPC_URL --full --json | \
-        jq '.transactions[0].hash' | \
-        sed 's/"//g'
-    ) \
-    contractAddress
-)
-echo "Deployed contract address: $addr"
-# save the address to a file for later use
-echo $addr > "$ROOT/out-test/KeyringCoreV2.sol/KeyringCoreV2.address"
-echo "Contract address saved to $ROOT/out-test/KeyringCoreV2.sol/KeyringCoreV2.address"
+# ensure that the deploy script will actually deploy a new proxy
+export PROXY_ADDRESS="0x0000000000000000000000000000000000000000"
 
-# Deploy the unsafe contract as well using Forge
-forge script "$ROOT/script/unsafe.s.sol" --rpc-url $RPC_URL --private-key $PRV_KEY --broadcast
+# get all the contracts in the directory src/signatureCheckers
+SIGNATURE_CHECKERS_NAMES=$(find "$ROOT/src/signatureCheckers" -name "*.sol" -exec basename {} .sol \;)
 
-# Save the deployed contract address to a local file
-addr=$(
-    cast receipt --rpc-url $RPC_URL \
-    $(
-        cast bn --rpc-url $RPC_URL | \
-        cast bl --rpc-url $RPC_URL --full --json | \
-        jq '.transactions[0].hash' | \
-        sed 's/"//g'
-    ) \
-    contractAddress
-)
-echo "Deployed contract address: $addr"
-# save the address to a file for later use
-echo $addr > "$ROOT/out-test/KeyringCoreV2Unsafe.sol/KeyringCoreV2Unsafe.address"
-echo "Contract address saved to $ROOT/out-test/KeyringCoreV2Unsafe.sol/KeyringCoreV2Unsafe.address"
+# cleanup the out directory
+forge clean && \
+forge build
+
+for SIGNATURE_CHECKER_NAME in $SIGNATURE_CHECKERS_NAMES; do
+    export SIGNATURE_CHECKER_NAME=$SIGNATURE_CHECKER_NAME
+    echo "Deploying the contract with the signature checker $SIGNATURE_CHECKER_NAME..."
+    forge script script/Deploy.s.sol \
+            --broadcast \
+            --rpc-url $RPC_URL
+    echo "Proxy address for the signature checker $SIGNATURE_CHECKER_NAME: $(cat "$OUT_FOLDER/KeyringCoreProxy.address")"
+    NEW_NAME=$(echo "$SIGNATURE_CHECKER_NAME" | sed 's/SignatureChecker//')
+    mv "$OUT_FOLDER/KeyringCoreProxy.address" "$OUT_FOLDER/KeyringCore$NEW_NAME.address"
+done
+
 
