@@ -1,8 +1,6 @@
-# The scripts used in the commands are defined in the core-v2 images.
-# See core-v2 repository README for more details.
 services:
   node:
-    image: smart-contracts:testnet
+    image: smart-contracts:latest
     ports:
     - "8545:8545"
     command: |
@@ -24,20 +22,42 @@ services:
       timeout: "10s"
       retries: 10
       start_period: "1s"
+    restart: "no"
     volumes:
+    - node-status:/tmp
     - contracts:/usr/src/app/out
 
   deploy-contracts:
-    image: smart-contracts:testnet
+    image: smart-contracts:latest
     depends_on:
       node:
         condition: service_healthy
-    command: >
-      bash ./bin/deploy.sh
-        --rpc http://node:8545
-        --private-key 0x024cf65eb3bc550a1a6675aa21d146d7476fc5b62715d24fb2e0027647a213af
-    volumes:
-    - contracts:/usr/src/app/out
+    command: |
+      /bin/sh -c '
+        # Deploy contracts
+        bash ./bin/deploy.sh \
+          --rpc http://node:8545 \
+          --chain 1337 \
+          --private-key 0x024cf65eb3bc550a1a6675aa21d146d7476fc5b62715d24fb2e0027647a213af && \
 
+        # Signal to docker compose healthcheck that contracts are deployed
+        touch contracts-deployed && \
+
+        # Noop until tests are done
+        while [ ! -f /tmp/tests_done ]; \
+          do sleep 1; \
+        done; \
+      '
+    healthcheck:
+      test: [ "CMD", "ls", "contracts-deployed" ]
+      interval: "1s"
+      timeout: "40s"
+      retries: 20
+      start_period: "1s"
+    restart: "no"
+    volumes:
+    - node-status:/tmp
+    - contracts:/usr/src/app/out
 volumes:
+  node-status:
   contracts:

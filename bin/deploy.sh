@@ -32,10 +32,11 @@ display_help() {
     echo "This script accepts the following command line arguments:"
     echo "--rpc: the network RPC"
     echo "--private-key: The deployer private key"
+    echo "--chain: useless. Kept for backwards compatibility."
     echo ""
     
     echo "For example:"
-    echo "bash bin/deploy.sh --rpc $RPC_URL --private-key $PRV_KEY"
+    echo "bash bin/deploy.sh --rpc $RPC_URL --private-key $PRIVATE_KEY"
 }
 
 # Parse command-line arguments
@@ -46,7 +47,11 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --private-key)
-            PRV_KEY="$2"
+            PRIVATE_KEY="$2"
+            shift 2
+            ;;
+        --chain)
+            CHAIN_ID="$2"
             shift 2
             ;;
         --help)
@@ -74,12 +79,11 @@ export PROXY_ADDRESS="0x0000000000000000000000000000000000000000"
 SIGNATURE_CHECKERS_NAMES=$(find "$ROOT/src/signatureCheckers" -name "*.sol" -exec basename {} .sol \;)
 
 # cleanup the out directory
-rm -rf "$OUT_FOLDER"/* && \
 forge clean && \
 forge build
 
 for SIGNATURE_CHECKER_NAME in $SIGNATURE_CHECKERS_NAMES; do
-    export SIGNATURE_CHECKER=$SIGNATURE_CHECKER_NAME
+    export SIGNATURE_CHECKER_NAME=$SIGNATURE_CHECKER_NAME
     echo "Deploying the contract with the signature checker $SIGNATURE_CHECKER_NAME..."
     forge script script/Deploy.s.sol \
             --broadcast \
