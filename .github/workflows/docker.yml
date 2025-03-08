@@ -20,13 +20,15 @@ jobs:
       - name: build docker images
         run: bash bin/develop.sh
       - name: start testnet
-        run: bash bin/testnet.sh &
-      - name: wait for deploy-contracts to be healthy
-        run: docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment wait deploy-contracts
+        run: |
+          bash bin/testnet.sh -d
+          docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment logs -f deploy-contracts &
+          docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment wait deploy-contracts
+          pkill -f "docker compose.*logs"
       - name: signal test completion
         run: docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment exec -T node touch /tmp/tests_done
       - name: wait for containers to exit
-        run: docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment wait
+        run: docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment wait node
       - name: tear down testnet
         if: always()
         run: docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment down -v
