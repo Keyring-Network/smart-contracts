@@ -20,7 +20,7 @@ jobs:
       - name: build docker images
         run: bash bin/develop.sh
       - name: start testnet
-        run: bash bin/testnet.sh
+        run: bash bin/testnet.sh &
       - name: wait for deploy-contracts to be healthy
         run: docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment wait deploy-contracts
       - name: signal test completion
