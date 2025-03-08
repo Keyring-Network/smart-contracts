@@ -24,7 +24,7 @@ jobs:
           bash bin/testnet.sh -d
           docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment logs -f deploy-contracts &
           docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment wait deploy-contracts
-          pkill -f "docker compose.*logs"
+          pkill -f "docker compose.*logs" || true
       - name: signal test completion
         run: docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment exec -T node touch /tmp/tests_done
       - name: wait for containers to exit
