@@ -12,7 +12,7 @@ env:
   FOUNDRY_PROFILE: ci
 
 jobs:
-  check:
+  test-forge:
     strategy:
       fail-fast: true
 

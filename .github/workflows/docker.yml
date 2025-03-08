@@ -1,0 +1,29 @@
+name: Docker
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+    tags:
+      - "*"
+
+env:
+  FOUNDRY_PROFILE: ci
+
+jobs:
+  test-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: build docker images
+        run: bash bin/develop.sh
+      - name: start testnet
+        run: bash bin/testnet.sh
+      - name: wait for deploy-contracts to be healthy
+        run: docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment wait deploy-contracts
+      - name: signal test completion
+        run: docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment exec -T node touch /tmp/tests_done
+      - name: wait for containers to exit
+        run: docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment wait
+      - name: tear down testnet
+        run: docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment down -v
