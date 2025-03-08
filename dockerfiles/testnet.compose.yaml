@@ -24,21 +24,19 @@ services:
       start_period: "1s"
     restart: "no"
     volumes:
-    - node-status:/tmp
-    - contracts:/usr/src/app/out
+      - contracts:/usr/src/app/out
+      - node-status:/tmp
 
   deploy-contracts:
     image: smart-contracts:latest
     depends_on:
       node:
         condition: service_healthy
-    command: |
-      /bin/sh -c '
-        # Deploy contracts
-        bash ./bin/deploy.sh \
-          --rpc http://node:8545 \
-          --chain 1337 \
-          --private-key 0x024cf65eb3bc550a1a6675aa21d146d7476fc5b62715d24fb2e0027647a213af && \
+    command: >
+      bash ./bin/deploy.sh
+        --rpc http://node:8545
+        --chain 1337
+        --private-key 0x024cf65eb3bc550a1a6675aa21d146d7476fc5b62715d24fb2e0027647a213af && \
 
         # Signal to docker compose healthcheck that contracts are deployed
         touch contracts-deployed && \
@@ -56,8 +54,8 @@ services:
       start_period: "1s"
     restart: "no"
     volumes:
-    - node-status:/tmp
-    - contracts:/usr/src/app/out
+      - node-status:/tmp
+      - contracts:/usr/src/app/out
 volumes:
   node-status:
   contracts:

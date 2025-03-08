@@ -3,6 +3,9 @@
 # This script builds Docker images for the core-v2 project and starts a local testnet.
 # It ensures a clean environment by removing any existing testnet containers before starting a new one.
 
+# this script allows for passing through arguments to docker compose
+# e.g. ./bin/testnet.sh -d
+
 set -euo pipefail
 
 ROOT="$(dirname "$(dirname "$(realpath "$0")")")"
@@ -16,5 +19,5 @@ if [ -n "$container_id" ]; then
     docker rm -f $container_id > /dev/null
 fi
 
-# Run the rest of the commands inside Docker container
-docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment up
+# Start the compose stack, passing through all arguments
+docker compose -f dockerfiles/testnet.compose.yaml -p testnet-deployment up "$@"

@@ -41,8 +41,8 @@ WORKDIR /usr/src/app
 # Copy the .git directory to ensure forge install works correctly
 COPY .git .git
 COPY foundry.toml .
-COPY dependencies ./dependencies
 COPY remappings.txt .
+COPY src ./src
 
 # Initialize the Forge project
 RUN forge soldeer install
