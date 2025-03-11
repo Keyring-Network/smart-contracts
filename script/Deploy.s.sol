@@ -51,6 +51,11 @@ contract Deploy is Script, IDeployOptions {
             proxyAddress = Upgrades.deployUUPSProxy(
                 "KeyringCore.sol", abi.encodeCall(KeyringCore.initialize, signatureCheckerAddress)
             );
+            KeyringCore keyringCore = KeyringCore(proxyAddress);
+            if (keyringCore.mustBeReInitialized()) {
+                console.log("Bump version to most recent");
+                keyringCore.reinitialize(signatureCheckerAddress);
+            }
             vm.stopBroadcast();
         } else {
             // Upgrade the proxy

@@ -120,6 +120,17 @@ contract DeployTest is Test, IDeployOptions {
         assertEq(upgradedProxyAddress, proxyAddress, "Proxy address should remain the same");
     }
 
+    function test_RevertOnUpgradeWithTheSameVersion() public {
+        setEnv("PRIVATE_KEY", deployerPrivateKey);
+        setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");
+        address proxyAddress = address(run());
+        assertTrue(address(proxyAddress) != address(0));
+
+        setEnv("PROXY_ADDRESS", vm.toString(proxyAddress));
+        vm.expectRevert(abi.encodeWithSignature("InvalidInitialization()"));
+        run();
+    }
+
     function test_RevertOnUpgradeWithInvalidOwner() public {
         setEnv("PRIVATE_KEY", deployerPrivateKey);
         setEnv("SIGNATURE_CHECKER_NAME", "AlwaysValidSignatureChecker");

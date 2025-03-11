@@ -8,6 +8,10 @@ import "./interfaces/IKeyringCore.sol";
 import "./interfaces/ISignatureChecker.sol";
 
 contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpgradeable {
+    /// @dev Current implementation version
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    uint64 private immutable CURRENT_VERSION;
+
     /// @dev Address of the admin.
     address internal _admin;
 
@@ -22,6 +26,7 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
+        CURRENT_VERSION = 4;
         _disableInitializers();
     }
 
@@ -44,9 +49,23 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
      * @param _signatureChecker The address of the signature checker.
      * @dev This function is only callable by the owner.
      */
-    function reinitialize(address _signatureChecker) public onlyOwner reinitializer(4) {
+    function reinitialize(address _signatureChecker) public onlyOwner reinitializer(CURRENT_VERSION) {
         setSignatureChecker(_signatureChecker);
     }
+
+    /**
+     * @notice Returns the initialized version of the contract.
+     * @return The initialized version of the contract.
+     */
+    function mustBeReInitialized() public view returns (bool) {
+        return _getInitializedVersion() < CURRENT_VERSION;
+    }
+
+    /**
+     * @notice Authorizes the upgrade of the contract.
+     * @dev This function is only callable by the owner.
+     */
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /**
      * @notice Sets the signature checker.
@@ -59,12 +78,6 @@ contract KeyringCore is IKeyringCore, Initializable, OwnableUpgradeable, UUPSUpg
         }
         signatureChecker = ISignatureChecker(_signatureChecker);
     }
-
-    /**
-     * @notice Authorizes the upgrade of the contract.
-     * @dev This function is only callable by the owner.
-     */
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /**
      * @inheritdoc IKeyringCore
