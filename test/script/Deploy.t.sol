@@ -12,7 +12,6 @@ import {KeyringCoreReferenceContract} from "../../src/referenceContract/KeyringC
 import {BaseDeployTest} from "../utils/BaseDeployTest.t.sol";
 
 contract DeployTest is BaseDeployTest {
-  
     function test_RevertOnMissingSignatureCheckerName() public {
         setEnv("PRIVATE_KEY", deployerPrivateKey);
         vm.expectRevert("Invalid signature checker name: ");

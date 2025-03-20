@@ -38,8 +38,7 @@ contract BaseDeployTest is IDeployOptions, Test {
         return deployer.deploy(deployOptions);
     }
 
-        
-    function setUp() virtual public {
+    function setUp() public virtual {
         deployer = new Deploy();
         deployerPrivateKey = 0xA11CE;
         deployerAddress = vm.addr(deployerPrivateKey);
