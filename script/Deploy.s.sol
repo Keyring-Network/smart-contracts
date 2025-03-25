@@ -33,7 +33,7 @@ contract Deploy is Script, IDeployOptions {
             bytes(deployOptions.proxyAddress).length > 0 ? vm.parseAddress(deployOptions.proxyAddress) : address(0);
 
         // Deploy the signature checker
-        // TODO: ultra low priofind a way to not redeploy the signature checker if it already exists
+        // TODO: ultra low prio find a way to not redeploy the signature checker if it already exists
         vm.startBroadcast(deployOptions.deployerPrivateKey);
         address signatureCheckerAddress;
         if (deployOptions.signatureCheckerName.equal("RSASignatureChecker")) {
