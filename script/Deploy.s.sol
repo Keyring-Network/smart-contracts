@@ -33,6 +33,8 @@ contract Deploy is Script, IDeployOptions {
             bytes(deployOptions.proxyAddress).length > 0 ? vm.parseAddress(deployOptions.proxyAddress) : address(0);
 
         // Deploy the signature checker
+        // TODO: ultra low prio find a way to not redeploy the signature checker if it already exists
+        vm.startBroadcast(deployOptions.deployerPrivateKey);
         address signatureCheckerAddress;
         if (deployOptions.signatureCheckerName.equal("RSASignatureChecker")) {
             signatureCheckerAddress = address(new RSASignatureChecker());
@@ -43,6 +45,7 @@ contract Deploy is Script, IDeployOptions {
         } else {
             revert(string.concat("Invalid signature checker name: ", deployOptions.signatureCheckerName));
         }
+        vm.stopBroadcast();
 
         if (proxyAddress == address(0)) {
             // Deploy the proxy
@@ -75,7 +78,9 @@ contract Deploy is Script, IDeployOptions {
         if (!vm.isContext(VmSafe.ForgeContext.Test)) {
             vm.writeFile("out/KeyringCoreProxy.address", vm.toString(proxyAddress));
         }
-
+        if (KeyringCore(proxyAddress).mustBeReInitialized()) {
+            revert("KeyringCore must be reinitialized");
+        }
         return KeyringCore(proxyAddress);
     }
 }
