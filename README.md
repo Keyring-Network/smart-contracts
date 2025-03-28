@@ -65,7 +65,7 @@ _w/ Etherscan verification:_
 source .env && forge script script/Deploy.s.sol \
             --force \
             --broadcast \
-            --rpc-url $RPC_URL
+            --rpc-url $RPC_URL \
             --verify \
             --etherscan-api-key $ETHERSCAN_API_KEY \
             --verifier-url $ETHERSCAN_BASE_API_URL \
