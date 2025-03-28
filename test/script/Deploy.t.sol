@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Test} from "forge-std/Test.sol";
 import {Deploy} from "../../script/Deploy.s.sol";
 import {AlwaysValidSignatureChecker} from "../../src/signatureCheckers/AlwaysValidSignatureChecker.sol";
 import {EIP191SignatureChecker} from "../../src/signatureCheckers/EIP191SignatureChecker.sol";
@@ -10,51 +9,9 @@ import {IKeyringCore} from "../../src/interfaces/IKeyringCore.sol";
 import {IDeployOptions} from "../../src/interfaces/IDeployOptions.sol";
 import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import {KeyringCoreReferenceContract} from "../../src/referenceContract/KeyringCoreReferenceContract.sol";
+import {BaseDeployTest} from "../utils/BaseDeployTest.t.sol";
 
-contract DeployTest is Test, IDeployOptions {
-    Deploy deployer;
-    DeployOptions deployOptions;
-    uint256 deployerPrivateKey;
-    address deployerAddress;
-
-    function setEnv(string memory key, uint256 value) internal {
-        if (keccak256(bytes(key)) == keccak256(bytes("PRIVATE_KEY"))) {
-            deployOptions.deployerPrivateKey = value;
-        } else {
-            revert("Unknown environment variable");
-        }
-    }
-
-    function setEnv(string memory key, string memory value) internal {
-        if (keccak256(bytes(key)) == keccak256(bytes("SIGNATURE_CHECKER_NAME"))) {
-            deployOptions.signatureCheckerName = value;
-        } else if (keccak256(bytes(key)) == keccak256(bytes("PROXY_ADDRESS"))) {
-            deployOptions.proxyAddress = value;
-        } else if (keccak256(bytes(key)) == keccak256(bytes("ETHERSCAN_API_KEY"))) {
-            deployOptions.etherscanApiKey = value;
-        } else if (keccak256(bytes(key)) == keccak256(bytes("ETHERSCAN_BASE_API_URL"))) {
-            deployOptions.verifierUrl = value;
-        } else {
-            revert("Unknown environment variable");
-        }
-    }
-
-    function run() internal returns (IKeyringCore) {
-        return deployer.deploy(deployOptions);
-    }
-
-    function setUp() public {
-        deployer = new Deploy();
-        deployerPrivateKey = 0xA11CE;
-        deployerAddress = vm.addr(deployerPrivateKey);
-        vm.deal(deployerAddress, 100 ether);
-        setEnv("PRIVATE_KEY", 0);
-        setEnv("SIGNATURE_CHECKER_NAME", "");
-        setEnv("PROXY_ADDRESS", "");
-        setEnv("ETHERSCAN_API_KEY", "");
-        setEnv("ETHERSCAN_BASE_API_URL", "");
-    }
-
+contract DeployTest is BaseDeployTest {
     function test_RevertOnMissingSignatureCheckerName() public {
         setEnv("PRIVATE_KEY", deployerPrivateKey);
         vm.expectRevert("Invalid signature checker name: ");
